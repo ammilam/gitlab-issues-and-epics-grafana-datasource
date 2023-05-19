@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Gitlab Issues And Epics",
+  "id": "andrewmilam-gitlabissuesandepics-datasource",
+  "metrics": true,
+  "info": {
+    "description": "A plugin that visualizes gitlab issues and epics",
+    "author": {
+      "name": "Andrew milam"
+    },
+    "keywords": ["datasource"],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=9.3.8",
+    "plugins": []
+  }
+}
