@@ -20,8 +20,8 @@ export interface MyQuery extends DataQuery {
   updatedBefore?: Date | null;
   closedAfter?: Date | null;
   closedBefore?: Date | null;
-  dueDateFrom?: Date | null;
-  dueDateTo?: Date | null;
+  dueDateAfter?: Date | null;
+  dueDateBefore?: Date | null;
   filters?: Filter[]
   field?: string;
 }

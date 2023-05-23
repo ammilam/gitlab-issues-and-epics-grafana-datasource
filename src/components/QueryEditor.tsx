@@ -85,10 +85,10 @@ export const QueryEditor: React.FC<Props> = (props) => {
         onChange({ ...query, createdBefore: date || null });
         break;
       case 'dueDateFrom':
-        onChange({ ...query, dueDateFrom: date || null });
+        onChange({ ...query, dueDateAfter: date || null });
         break;
       case 'dueDateTo':
-        onChange({ ...query, dueDateTo: date || null });
+        onChange({ ...query, dueDateBefore: date || null });
         break;
       case 'updatedAfter':
         onChange({ ...query, updatedAfter: date || null });
@@ -135,6 +135,8 @@ export const QueryEditor: React.FC<Props> = (props) => {
             width={30}
           />
         </InlineField>
+      </InlineFieldRow>
+        <InlineFieldRow>
         <InlineField label="Created After">
           <DateTimePicker
             label="Date"
@@ -154,14 +156,14 @@ export const QueryEditor: React.FC<Props> = (props) => {
         <InlineField label="Updated After">
           <DateTimePicker
             label="Date"
-            date={query.dueDateFrom ? toUtc(query.dueDateFrom) : undefined}
+            date={query.updatedAfter ? toUtc(query.updatedAfter) : undefined}
             onChange={(value) => onDateFieldChange("updatedAfter" || '', new Date(value.toDate()))}
           />
         </InlineField>
         <InlineField label="Updated Before">
           <DateTimePicker
             label="Date"
-            date={query.dueDateTo ? toUtc(query.dueDateTo) : undefined}
+            date={query.updatedBefore ? toUtc(query.updatedBefore) : undefined}
             onChange={(value) => onDateFieldChange("updatedBefore" || '', new Date(value.toDate()))}
           />
         </InlineField>
@@ -170,14 +172,14 @@ export const QueryEditor: React.FC<Props> = (props) => {
         <InlineField label="Closed After">
           <DateTimePicker
             label="Date"
-            date={query.dueDateFrom ? toUtc(query.dueDateFrom) : undefined}
+            date={query.closedAfter ? toUtc(query.closedAfter) : undefined}
             onChange={(value) => onDateFieldChange("closedAfter" || '', new Date(value.toDate()))}
           />
         </InlineField>
         <InlineField label="Closed Before Before">
           <DateTimePicker
             label="Date"
-            date={query.dueDateTo ? toUtc(query.dueDateTo) : undefined}
+            date={query.closedBefore ? toUtc(query.closedBefore) : undefined}
             onChange={(value) => onDateFieldChange("closedBefore" || '', new Date(value.toDate()))}
           />
         </InlineField>
@@ -186,14 +188,14 @@ export const QueryEditor: React.FC<Props> = (props) => {
         <InlineField label="Due Date After">
           <DateTimePicker
             label="Date"
-            date={query.dueDateFrom ? toUtc(query.dueDateFrom) : undefined}
+            date={query.dueDateAfter ? toUtc(query.dueDateAfter) : undefined}
             onChange={(value) => onDateFieldChange("dueDateAfter" || '', new Date(value.toDate()))}
           />
         </InlineField>
         <InlineField label="Due Date Before">
           <DateTimePicker
             label="Date"
-            date={query.dueDateTo ? toUtc(query.dueDateTo) : undefined}
+            date={query.dueDateBefore ? toUtc(query.dueDateBefore) : undefined}
             onChange={(value) => onDateFieldChange("dueDateBefore" || '', new Date(value.toDate()))}
           />
         </InlineField>
@@ -215,18 +217,18 @@ export const QueryEditor: React.FC<Props> = (props) => {
                 />
               </InlineField>
               <InlineField label="Value" grow>
-              <AsyncSelect
-                value={filter.field ? { label: filter.value, value: filter.value } : null}
-                loadOptions={async (input) => {
-                  const options = await loadFilterValueOptions(filter.field);
-                  return options;
-                }}
-                onChange={(selected) =>
-                  updateFilter(index, { ...filter, value: selected.value || '' })
-                }
-                placeholder="Enter value"
-                width={75}
-              />
+                <AsyncSelect
+                  value={filter.field ? { label: filter.value, value: filter.value } : null}
+                  loadOptions={async (input) => {
+                    const options = await loadFilterValueOptions(filter.field);
+                    return options;
+                  }}
+                  onChange={(selected) =>
+                    updateFilter(index, { ...filter, value: selected.value || '' })
+                  }
+                  placeholder="Enter value"
+                  width={75}
+                />
               </InlineField>
               <InlineField>
                 <Button
