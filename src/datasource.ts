@@ -301,7 +301,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'workflow_state',
       'ticket_age',
       'created_at',
+      'created_month',
+      'created_month_number',
+      'created_year',
+      'updated_month',
+      'updated_month_number',
+      'updated_year',
       'updated_at',
+      'closed_month',
+      'closed_month_number',
+      'closed_year',
       'closed_at',
     ];
   }
@@ -310,6 +319,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const diffInMs = Math.abs(date1.getTime() - date2.getTime());
     return Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
   }
+
+  getDateInfo = (date: Date): { monthName: string, monthNumber: number, year: number } => {
+    const monthNumberInYear = date.getMonth();
+    const year = date.getFullYear();
+    const monthNumber = monthNumberInYear + 1;
+    const monthName = date.toLocaleString('default', { month: 'long' });
+    let obj = { monthName, monthNumber, year }
+    return obj
+  };
+
 
   // Get all issues and epics for a group
   async getIssuesAndEpics(groupId: number): Promise<{ issues: any[]; epics: any[] }> {
@@ -367,7 +386,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let labels = issue.labels
           let workflow_issue_type;
           let workflow_state;
-          
+
 
           switch (true) {
             case labels.includes('IssueType::Research Spike'):
@@ -408,12 +427,23 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             default:
               workflow_state = 'Unassigned State';
           }
-
           let created_at = issue.created_at
+          let createdDateData = this.getDateInfo(new Date(created_at))
+          let created_month = createdDateData.monthName
+          let created_month_number = createdDateData.monthNumber
+          let created_year = createdDateData.year
           let updated_at = issue.updated_at
+          let updatedDateData = this.getDateInfo(new Date(updated_at))
+          let updated_month = updatedDateData.monthName
+          let updated_month_number = updatedDateData.monthNumber
+          let updated_year = updatedDateData.year
           let closed_at = issue.closed_at ? issue.closed_at : ""
-          let due_date = issue.due_date ? issue.due_date : ""
-          let epic_due_date = issue.epic.human_readable_end_date ? issue.epic.human_readable_end_date : ""
+          let closedDateData = this.getDateInfo(new Date(closed_at))
+          let closed_month = issue.closed_at ? closedDateData.monthName : ""
+          let closed_month_number = issue.closed_at ? closedDateData.monthNumber : ""
+          let closed_year = issue.closed_at ? closedDateData.year : ""
+          let due_date = issue.due_date ? issue.due_date.split("T")[0] : ""
+          let epic_due_date = issue.epic.human_readable_end_date ? issue.epic.human_readable_end_date.split("T")[0] : ""
           let epic_id = issue.epic.iid ? issue.epic.iid : ""
           let epic_title = issue.epic.title ? issue.epic.title : ""
           let epic_url = issue.epic.url ? issue.epic.url : ""
@@ -433,7 +463,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let Value = 1
 
           let obj = {
-            Time: created_at,
+            Time: issue.created_at,
             id: id,
             title: title,
             state: issue_state,
@@ -451,8 +481,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             Value: Value,
             ticket_age: ticket_age,
             updated_at: updated_at,
+            updated_month: updated_month,
+            updated_month_number: updated_month_number,
+            updated_year: updated_year,
             closed_at: closed_at,
+            closed_month: closed_month,
+            closed_month_number: closed_month_number,
+            closed_year: closed_year,
             created_at: created_at,
+            created_month: created_month,
+            created_month_number: created_month_number,
+            created_year: created_year,
             due_date: due_date,
             epic_due_date: epic_due_date,
             epic_id: epic_id,
@@ -486,8 +525,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'workflow_issue_type', type: FieldType.string },
         { name: 'project_id', type: FieldType.string },
         { name: 'created_at', type: FieldType.string },
+        { name: 'created_month', type: FieldType.string },
+        { name: 'created_month_number', type: FieldType.number },
+        { name: 'created_year', type: FieldType.number },
         { name: 'updated_at', type: FieldType.string },
+        { name: 'updated_month', type: FieldType.string },
+        { name: 'updated_month_number', type: FieldType.number },
+        { name: 'updated_year', type: FieldType.number },
         { name: 'closed_at', type: FieldType.string },
+        { name: 'closed_month', type: FieldType.string },
+        { name: 'closed_month_number', type: FieldType.number },
+        { name: 'closed_year', type: FieldType.number },
         { name: 'closed_by', type: FieldType.string },
         { name: 'milestone', type: FieldType.string },
         { name: 'description', type: FieldType.string },
@@ -508,7 +556,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     for (const issue of issues) {
 
-      frame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['updated_at'], issue['closed_at'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+      frame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
     }
 
     // for (const epic of epics) {
