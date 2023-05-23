@@ -300,6 +300,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'workflow_issue_type',
       'workflow_state',
       'ticket_age',
+      'created_at',
+      'updated_at',
+      'closed_at',
     ];
   }
 
@@ -428,6 +431,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let total_time_spent = issue['time_stats']['total_time_spent'] ? issue['time_stats']['total_time_spent'] : ""
           let type = "issue"
           let Value = 1
+
           let obj = {
             Time: created_at,
             id: id,
