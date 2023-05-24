@@ -1,15 +1,14 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+  repository_dispatch:
+    types: [release-output]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }} # Requires a Grafana API key from Grafana.com.
+      GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup Node.js environment
@@ -84,7 +83,7 @@ jobs:
           echo "archive=${GRAFANA_PLUGIN_ARTIFACT}" >> $GITHUB_OUTPUT
           echo "archive-checksum=${GRAFANA_PLUGIN_ARTIFACT_CHECKSUM}" >> $GITHUB_OUTPUT
 
-          echo "github-tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+          echo "github-tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
 
       - name: Read changelog
         id: changelog
@@ -93,7 +92,7 @@ jobs:
           echo "path=release_notes.md" >> $GITHUB_OUTPUT
 
       - name: Check package version
-        run: if [ "v${{ steps.metadata.outputs.plugin-version }}" != "${{ steps.metadata.outputs.github-tag }}" ]; then printf "\033[0;31mPlugin version doesn't match tag name\033[0m\n"; exit 1; fi
+        run: if [ "v${{ steps.metadata.outputs.plugin-version }}" != "${{ github.event.client_payload.tag }}" ]; then printf "\033[0;31mPlugin version doesn't match tag name\033[0m\n"; exit 1; fi
 
       - name: Package plugin
         id: package-plugin
