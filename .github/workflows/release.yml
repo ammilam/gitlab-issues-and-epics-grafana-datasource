@@ -1,9 +1,8 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+  repository_dispatch:
+    types: [release-output]
 
 jobs:
   release:
