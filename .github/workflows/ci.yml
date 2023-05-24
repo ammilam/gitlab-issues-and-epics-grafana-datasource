@@ -70,16 +70,9 @@ jobs:
           version: latest
           args: buildAll
       
-      - name: "Automated Version Bump"
+      - name: version_bump
         uses: "phips28/gh-action-bump-version@master"
         with:
           tag-prefix: ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: release-output
-          client-payload: '{"tag": "${{ steps.tag_version.outputs.new_tag }}"}'
