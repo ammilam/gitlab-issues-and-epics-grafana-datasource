@@ -71,6 +71,7 @@ jobs:
           args: buildAll
       
       - name: version_bump
+        id: version_bump
         uses: "phips28/gh-action-bump-version@master"
         with:
           tag-prefix: 'v'

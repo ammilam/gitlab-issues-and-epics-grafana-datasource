@@ -1,8 +1,9 @@
 name: Release
 
 on:
-  repository_dispatch:
-    types: [release-output]
+  push:
+    tags:
+      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
 
 jobs:
   release:
@@ -83,7 +84,7 @@ jobs:
           echo "archive=${GRAFANA_PLUGIN_ARTIFACT}" >> $GITHUB_OUTPUT
           echo "archive-checksum=${GRAFANA_PLUGIN_ARTIFACT_CHECKSUM}" >> $GITHUB_OUTPUT
 
-          echo "github-tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+          echo "github-tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
 
       - name: Read changelog
         id: changelog
