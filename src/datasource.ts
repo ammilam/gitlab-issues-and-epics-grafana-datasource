@@ -36,10 +36,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
-    let initialDataFrames = this.convertToDataFrames(issues, epics);
-
     const { groupBy, aggregateFunction, typeFilter, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
+    const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
+    let initialDataFrames = this.convertToDataFrames(issues, epics, groupBy);
+
     let filteredDataFrames = initialDataFrames;
 
     // Apply the type filter
@@ -449,6 +449,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let epic_url = issue.epic.url ? issue.epic.url : ""
           let ticket_age = !closed_at ? this.getDiffInDays(new Date(created_at), new Date()) : this.getDiffInDays(new Date(created_at), new Date(closed_at))
           let assignee = issue.assignee.username ? issue.assignee.username : ""
+          let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.username) : []
           let closed_by = issue.closed_by.username ? issue.closed_by.username : ""
           let milestone = issue.milestone ? issue.milestone : ""
           let description = issue.description ? issue.description : ""
@@ -471,6 +472,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             workflow_issue_type: workflow_issue_type,
             project_id: project_id,
             assignee: assignee,
+            assignees: assignees,
             closed_by: closed_by,
             milestone: milestone,
             description: description,
@@ -512,7 +514,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
   }
 
-  convertToDataFrames(issues: any[], epics: any[]): MutableDataFrame[] {
+  convertToDataFrames(issues: any[], epics: any[], groupBy: string[]): MutableDataFrame[] {
     const frame = new MutableDataFrame({
       refId: 'data',
       fields: [
@@ -556,9 +558,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     for (const issue of issues) {
 
-      frame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+      if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
+        for (const assignee of issue['assignees']) {
+          frame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+        }
+      } else {
+        frame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+      }
     }
-
     // for (const epic of epics) {
     //   frame.add({ id: epic.iid, Time: epic.created_at, Value: 1, type: "epic", project_id: epic.project_id });
     // }
