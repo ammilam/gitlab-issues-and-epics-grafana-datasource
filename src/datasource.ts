@@ -445,7 +445,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let due_date = issue.due_date ? issue.due_date.split("T")[0] : ""
           let epic_due_date = issue.epic.human_readable_end_date ? issue.epic.human_readable_end_date.split("T")[0] : ""
           let epic_id = issue.epic.iid ? issue.epic.iid : ""
-          let epic_title = issue.epic.title ? issue.epic.title : ""
+          let epic_title = issue.epic.title ? issue.epic.title : "No Epic Assigned"
           let epic_url = issue.epic.url ? issue.epic.url : ""
           let ticket_age = !closed_at ? this.getDiffInDays(new Date(created_at), new Date()) : this.getDiffInDays(new Date(created_at), new Date(closed_at))
           let assignee = issue.assignee.username ? issue.assignee.username : ""
