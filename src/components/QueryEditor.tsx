@@ -246,7 +246,11 @@ export const QueryEditor: React.FC<Props> = (props) => {
               </InlineField>
               <InlineField label="Value" grow>
                 <AsyncMultiSelect
-                  value={filter.field && filter.value ? filter.value.split(',').map(value => ({ label: value, value: value })) : []}
+                  value={
+                    filter.field && typeof filter.value === 'string'
+                      ? filter.value.split(',').map(value => ({ label: value, value: value }))
+                      : []
+                  }
                   defaultOptions={filterOptions[index] || []}
                   loadOptions={() => loadFilterValueOptions(filter.field, dictionary)}
                   onChange={(selected) =>
