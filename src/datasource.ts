@@ -37,6 +37,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { groupBy, aggregateFunction, typeFilter, filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
+
     let initialDataFrames = this.convertToDataFrames(issues, epics, groupBy);
 
     let filteredDataFrames = initialDataFrames;
@@ -336,7 +337,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 
   // Get all issues and epics for a group
-  async getIssuesAndEpics(groupId: number): Promise<{ issues: any[]; epics: any[] }> {
+  async getIssuesAndEpics(groupId: number): Promise<{ issues: any[]; epics: any[], issueFieldValuesDictionary: {} }> {
     let url;
     url = `${this.apiUrl}/api/v4/groups/${groupId}`
     try {
@@ -348,6 +349,47 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const res = await projectResponse.json()
       const projects = res['projects']
       let issues = [];
+      type ValueTypes = string | number | boolean | Date | string[]; // Add here any other type that might appear in your obj.
+      type ObjectType = {
+        Time: any,
+        id: string,
+        title: string,
+        state: string,
+        workflow_state: string,
+        workflow_issue_type: string,
+        project_id: string,
+        assignee: string,
+        assignees: string[],
+        closed_by: string,
+        milestone: string,
+        description: string,
+        time_estimate: string,
+        total_time_spent: string,
+        author: string,
+        type: string,
+        Value: number,
+        ticket_age: any,
+        updated_at: Date,
+        updated_month: string,
+        updated_month_number: any,
+        updated_year: any,
+        closed_at: Date,
+        closed_month: string,
+        closed_month_number: any,
+        closed_year: any,
+        created_at: Date,
+        created_month: string,
+        created_month_number: any,
+        created_year: any,
+        due_date: Date,
+        epic_due_date: Date,
+        epic_id: string,
+        epic_title: string,
+        epic_url: string
+
+        [key: string]: any; // This is the index signature
+      };
+      let issueFieldValuesDictionary: Record<string, ValueTypes[]> = {};
       let epics = [];
 
       const fetchAllPages = async (url: string) => {
@@ -468,7 +510,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let type = "issue"
           let Value = 1
 
-          let obj = {
+          let obj: ObjectType = {
             Time: issue.created_at,
             id: id,
             title: title,
@@ -506,13 +548,23 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             epic_url: epic_url
           }
           issues.push(obj);
+          Object.keys(obj).forEach((key) => {
+
+            // create an array containing all the values for a field, push it to the objectFieldValues dictionary
+            if (issueFieldValuesDictionary[key]) {
+              issueFieldValuesDictionary[key].push(obj[key]);
+            }
+            else {
+              issueFieldValuesDictionary[key] = [obj[key]];
+            }
+          });
         }
       }
 
       let epicResponseUrl = `${this.apiUrl}/api/v4/groups/${groupId}/epics?per_page=100`;
       let groupEpics = await fetchAllPages(epicResponseUrl);
       epics.push(...groupEpics);
-      return { issues, epics };
+      return { issues, epics, issueFieldValuesDictionary };
     } catch (error) {
       alert(error);
       throw new Error('Failed to fetch issues and epics from Gitlab API');

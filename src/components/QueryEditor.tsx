@@ -1,26 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { SelectableValue, QueryEditorProps, toUtc } from '@grafana/data';
-import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Button, AsyncMultiSelect } from '@grafana/ui';
+import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Button } from '@grafana/ui';
 import { DataSource } from '../datasource';
 import { MyDataSourceOptions, MyQuery, Filter } from '../types';
-
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 export const QueryEditor: React.FC<Props> = (props) => {
+  
+  const loadFieldOptions = async (): Promise<any> => {
+    // Fetch the data once
+    const {issueFieldValuesDictionary} = await props.datasource.getIssuesAndEpics(props.datasource.groupId);
 
-  const loadFilterValueOptions = async (field: string) => {
+    return issueFieldValuesDictionary;
+
+  }
+
+  const loadFilterValueOptions = async (field: string, dictionary: any) => {
     if (!field) {
       return [];
     }
-
-    // Fetch the data once
-    const { issues, epics } = await props.datasource.getIssuesAndEpics(props.datasource.groupId);
-    const allData = [...issues, ...epics];
-
     // Pass the data to the getUniqueFieldValues method
-    const uniqueValues = await props.datasource.getUniqueFieldValues(field, allData);
-    let obj = uniqueValues.map((value) => ({ label: value, value }));
+    const uniqueValues =dictionary[field]|| [];
+    const uniqueSet = new Set<string>(uniqueValues);
+  
+    // Convert back to array then map
+    let obj = Array.from(uniqueSet).map((value: any) => ({ label: value, value }));
+  
     return obj;
   };
 
@@ -48,16 +54,26 @@ export const QueryEditor: React.FC<Props> = (props) => {
 
   // Initialize the filters state
   const [filters, setFilters] = useState<Filter[]>(query.filters);
+  const [filterOptions, setFilterOptions] = useState<Array<Array<SelectableValue<string>>>>([]);
+
   // Add event handlers for filters
   const addFilter = () => {
     setFilters([...filters, { field: '', value: '' }]);
   };
 
-  const updateFilter = (index: number, updatedFilter: Filter) => {
+  const updateFilter = async (index: number, updatedFilter: Filter) => {
     const newFilters = filters.map((filter, i) => (i === index ? updatedFilter : filter));
     setFilters(newFilters);
     onChange({ ...query, filters: newFilters });
-  };
+
+    if(updatedFilter.field) {
+      const dictionary = await fieldOptions;
+      const newOptions = await loadFilterValueOptions(updatedFilter.field, dictionary);
+      let newFilterOptions = [...filterOptions];
+      newFilterOptions[index] = newOptions;
+      setFilterOptions(newFilterOptions);
+    }
+};
 
   const removeFilter = (index: number) => {
     const newFilters = filters.filter((_, i) => i !== index);
@@ -105,6 +121,7 @@ export const QueryEditor: React.FC<Props> = (props) => {
         break;
     }
   };
+  const fieldOptions = loadFieldOptions();
 
   return (
     <div>
@@ -218,14 +235,11 @@ export const QueryEditor: React.FC<Props> = (props) => {
                 />
               </InlineField>
               <InlineField label="Value" grow>
-                <AsyncMultiSelect
+                <MultiSelect
                   value={filter.field && filter.value ? filter.value.split(',').map(value => ({ label: value, value: value })) : []}
-                  loadOptions={async (input) => {
-                    const options = await loadFilterValueOptions(filter.field);
-                    return options;
-                  }}
+                  options={filterOptions[index] || []}
                   onChange={(selected) =>
-                    updateFilter(index, { ...filter, value: selected ? selected.map(option => option.value).join(',') : '' })
+                      updateFilter(index, { ...filter, value: selected ? selected.map(option => option.value).join(',') : '' })
                   }
                   placeholder="Enter value"
                   width={75}
