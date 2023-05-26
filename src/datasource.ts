@@ -1,7 +1,6 @@
 import { FieldType, MutableDataFrame, DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings } from '@grafana/data';
 import { MyDataSourceOptions, MyQuery } from './types';
 
-// D
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   apiUrl: string;
   accessToken: string;
@@ -36,7 +35,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { groupBy, aggregateFunction, typeFilter, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
+    const { groupBy, aggregateFunction, typeFilter, filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
     let initialDataFrames = this.convertToDataFrames(issues, epics, groupBy);
 
@@ -50,9 +49,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     // Apply the date filter
     filteredDataFrames = this.applyDateFilter(createdAfter, createdBefore, updatedAfter, updatedBefore, closedAfter, closedBefore, filteredDataFrames);
 
-    // Apply the date filter
-    const filters = options.targets[0].filters || {};
-    // Pass the filters object when calling applyGroupByAndAggregate
+    // Pass the filters array when calling applyGroupByAndAggregate
     if (groupBy && aggregateFunction) {
       filteredDataFrames = this.applyGroupByAndAggregate(
         groupBy,
@@ -64,7 +61,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         closedAfter || null,
         closedBefore || null,
         filteredDataFrames,
-        filters
+        filters || [],
       );
     }
     const response = { data: filteredDataFrames };
@@ -102,7 +99,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     closedAfter: Date | null,
     closedBefore: Date | null,
     dataFrames: MutableDataFrame[],
-    filterString: Record<string, any>,
+    filters: Array<{ field: string; value: string | string[]; }>,
     typeFilter?: string
   ): MutableDataFrame[] {
     const transformedDataFrames = dataFrames.map((dataFrame) => {
@@ -117,18 +114,26 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const updatedTo = updatedBefore ? new Date(updatedBefore) : null;
         const closedFrom = closedAfter ? new Date(closedAfter) : null;
         const closedTo = closedBefore ? new Date(closedBefore) : null;
-        const isRowMatchingFilters = Object.keys(filterString).every((key) => {
-          const filterValue = filterString[key];
-          const field = filterValue['field'];
-          const value = filterValue['value'];
+        const isRowMatchingFilters = filters.every((filter) => {
+          let { field, value } = filter;
+
+
           const rowValue = row[field] === null ? 'null' : row[field];
 
-          if (filterValue === 'null') {
+          if (value === 'null') {
             return rowValue === null;
           }
-          return rowValue === value;
-        });
+          //check if string is a comma separated list
+          if (typeof value === 'string' && value.includes(',')) {
+            // if it is, turn it into an array
 
+            const v = value.split(',').map((v) => v.trim());
+            // and check if rowValue is included in it
+            return v.includes(rowValue);
+          } else {
+            return rowValue === value
+          }
+        });
         const createdFilter =
           (!createdAfter || !createdFrom || created >= createdFrom) &&
           (!createdBefore || !createdTo || created <= createdTo);
@@ -515,7 +520,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   convertToDataFrames(issues: any[], epics: any[], groupBy: string[]): MutableDataFrame[] {
-    const frame = new MutableDataFrame({
+    const issueFrame = new MutableDataFrame({
       refId: 'data',
       fields: [
         { name: 'Time', type: FieldType.time },
@@ -560,15 +565,15 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
       if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
         for (const assignee of issue['assignees']) {
-          frame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
         }
       } else {
-        frame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+        issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
       }
     }
     // for (const epic of epics) {
     //   frame.add({ id: epic.iid, Time: epic.created_at, Value: 1, type: "epic", project_id: epic.project_id });
     // }
-    return [frame];
+    return [issueFrame];
   }
 }

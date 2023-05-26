@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { SelectableValue, QueryEditorProps, toUtc } from '@grafana/data';
-import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Button, AsyncSelect } from '@grafana/ui';
+import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Button, AsyncMultiSelect } from '@grafana/ui';
 import { DataSource } from '../datasource';
 import { MyDataSourceOptions, MyQuery, Filter } from '../types';
 
+// https://developers.grafana.com/ui/canary/index.html?path=/story/forms-select--multi-select-basic
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 export const QueryEditor: React.FC<Props> = (props) => {
@@ -217,14 +218,14 @@ export const QueryEditor: React.FC<Props> = (props) => {
                 />
               </InlineField>
               <InlineField label="Value" grow>
-                <AsyncSelect
-                  value={filter.field ? { label: filter.value, value: filter.value } : null}
+                <AsyncMultiSelect
+                  value={filter.field && filter.value ? filter.value.split(',').map(value => ({ label: value, value: value })) : []}
                   loadOptions={async (input) => {
                     const options = await loadFilterValueOptions(filter.field);
                     return options;
                   }}
                   onChange={(selected) =>
-                    updateFilter(index, { ...filter, value: selected.value || '' })
+                    updateFilter(index, { ...filter, value: selected ? selected.map(option => option.value).join(',') : '' })
                   }
                   placeholder="Enter value"
                   width={75}
