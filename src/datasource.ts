@@ -115,9 +115,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const updatedTo = updatedBefore ? new Date(updatedBefore) : null;
         const closedFrom = closedAfter ? new Date(closedAfter) : null;
         const closedTo = closedBefore ? new Date(closedBefore) : null;
+
         const isRowMatchingFilters = filters.every((filter) => {
           let { field, value } = filter;
-
 
           const rowValue = row[field] === null ? 'null' : row[field];
 
@@ -321,9 +321,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     ];
   }
 
-  getDiffInDays(date1: Date, date2: Date): number {
+  getDiffInDays(date1: Date, date2: Date): string {
     const diffInMs = Math.abs(date1.getTime() - date2.getTime());
-    return Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    let res = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    return String(res)
   }
 
   getDateInfo = (date: Date): { monthName: string, monthNumber: number, year: number } => {
@@ -351,7 +352,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       let issues = [];
       type ValueTypes = string | number | boolean | Date | string[]; // Add here any other type that might appear in your obj.
       type ObjectType = {
-        Time: any,
+        Time: Date,
         id: string,
         title: string,
         state: string,
@@ -368,19 +369,19 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         author: string,
         type: string,
         Value: number,
-        ticket_age: any,
+        ticket_age: string,
         updated_at: Date,
         updated_month: string,
-        updated_month_number: any,
-        updated_year: any,
+        updated_month_number: string,
+        updated_year: string,
         closed_at: Date,
         closed_month: string,
-        closed_month_number: any,
-        closed_year: any,
+        closed_month_number: string,
+        closed_year: string,
         created_at: Date,
         created_month: string,
-        created_month_number: any,
-        created_year: any,
+        created_month_number: string,
+        created_year: string,
         due_date: Date,
         epic_due_date: Date,
         epic_id: string,
@@ -477,18 +478,18 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
           let created_month = createdDateData.monthName
-          let created_month_number = createdDateData.monthNumber
-          let created_year = createdDateData.year
+          let created_month_number = String(createdDateData.monthNumber) || ""
+          let created_year = String(createdDateData.year) || ""
           let updated_at = issue.updated_at
           let updatedDateData = this.getDateInfo(new Date(updated_at))
           let updated_month = updatedDateData.monthName
-          let updated_month_number = updatedDateData.monthNumber
-          let updated_year = updatedDateData.year
+          let updated_month_number = String(updatedDateData.monthNumber) || ""
+          let updated_year = String(updatedDateData.year) || ""
           let closed_at = issue.closed_at ? issue.closed_at : ""
           let closedDateData = this.getDateInfo(new Date(closed_at))
           let closed_month = issue.closed_at ? closedDateData.monthName : ""
-          let closed_month_number = issue.closed_at ? closedDateData.monthNumber : ""
-          let closed_year = issue.closed_at ? closedDateData.year : ""
+          let closed_month_number = issue.closed_at ? String(closedDateData.monthNumber) : ""
+          let closed_year = issue.closed_at ? String(closedDateData.year) : ""
           let due_date = issue.due_date ? issue.due_date.split("T")[0] : ""
           let epic_due_date = issue.epic.human_readable_end_date ? issue.epic.human_readable_end_date.split("T")[0] : ""
           let epic_id = issue.epic.iid ? issue.epic.iid : ""
@@ -585,16 +586,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'project_id', type: FieldType.string },
         { name: 'created_at', type: FieldType.string },
         { name: 'created_month', type: FieldType.string },
-        { name: 'created_month_number', type: FieldType.number },
-        { name: 'created_year', type: FieldType.number },
+        { name: 'created_month_number', type: FieldType.string },
+        { name: 'created_year', type: FieldType.string },
         { name: 'updated_at', type: FieldType.string },
         { name: 'updated_month', type: FieldType.string },
-        { name: 'updated_month_number', type: FieldType.number },
-        { name: 'updated_year', type: FieldType.number },
+        { name: 'updated_month_number', type: FieldType.string },
+        { name: 'updated_year', type: FieldType.string },
         { name: 'closed_at', type: FieldType.string },
         { name: 'closed_month', type: FieldType.string },
-        { name: 'closed_month_number', type: FieldType.number },
-        { name: 'closed_year', type: FieldType.number },
+        { name: 'closed_month_number', type: FieldType.string },
+        { name: 'closed_year', type: FieldType.string },
         { name: 'closed_by', type: FieldType.string },
         { name: 'milestone', type: FieldType.string },
         { name: 'description', type: FieldType.string },
