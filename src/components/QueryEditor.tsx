@@ -4,7 +4,7 @@ import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Butto
 import { DataSource } from '../datasource';
 import { MyDataSourceOptions, MyQuery, Filter } from '../types';
 
-// https://developers.grafana.com/ui/canary/index.html?path=/story/forms-select--multi-select-basic
+
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 export const QueryEditor: React.FC<Props> = (props) => {
