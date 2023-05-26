@@ -1,32 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SelectableValue, QueryEditorProps, toUtc } from '@grafana/data';
-import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Button } from '@grafana/ui';
+import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Button, AsyncMultiSelect } from '@grafana/ui';
 import { DataSource } from '../datasource';
 import { MyDataSourceOptions, MyQuery, Filter } from '../types';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
+
 export const QueryEditor: React.FC<Props> = (props) => {
-  
-  const loadFieldOptions = async (): Promise<any> => {
+
+  const loadFieldOptions = useCallback(async (): Promise<any> => {
     // Fetch the data once
-    const {issueFieldValuesDictionary} = await props.datasource.getIssuesAndEpics(props.datasource.groupId);
+    const { issueFieldValuesDictionary } = await props.datasource.getIssuesAndEpics(props.datasource.groupId);
 
     return issueFieldValuesDictionary;
 
-  }
+  }, [props.datasource]);
 
   const loadFilterValueOptions = async (field: string, dictionary: any) => {
     if (!field) {
       return [];
     }
     // Pass the data to the getUniqueFieldValues method
-    const uniqueValues =dictionary[field]|| [];
+    const uniqueValues = dictionary[field] || [];
     const uniqueSet = new Set<string>(uniqueValues);
-  
+
     // Convert back to array then map
     let obj = Array.from(uniqueSet).map((value: any) => ({ label: value, value }));
-  
+
     return obj;
   };
 
@@ -38,6 +39,15 @@ export const QueryEditor: React.FC<Props> = (props) => {
     // Access the groupBy property
     query.groupBy = [];
   }
+  // Declare the dictionary state.
+  const [dictionary, setDictionary] = useState<any>({});
+  useEffect(() => {
+    (async () => {
+      const newDictionary = await loadFieldOptions();
+      setDictionary(newDictionary);
+    })();
+  }, [loadFieldOptions]);
+
   const [fields, setFields] = useState<string[]>([]);
   const [aggregateFunctions] = useState<string[]>(['count']);
   const [typeOptions] = useState<string[]>(['issue', 'epic']);
@@ -66,14 +76,14 @@ export const QueryEditor: React.FC<Props> = (props) => {
     setFilters(newFilters);
     onChange({ ...query, filters: newFilters });
 
-    if(updatedFilter.field) {
+    if (updatedFilter.field) {
       const dictionary = await fieldOptions;
       const newOptions = await loadFilterValueOptions(updatedFilter.field, dictionary);
       let newFilterOptions = [...filterOptions];
       newFilterOptions[index] = newOptions;
       setFilterOptions(newFilterOptions);
     }
-};
+  };
 
   const removeFilter = (index: number) => {
     const newFilters = filters.filter((_, i) => i !== index);
@@ -154,7 +164,7 @@ export const QueryEditor: React.FC<Props> = (props) => {
           />
         </InlineField>
       </InlineFieldRow>
-        <InlineFieldRow>
+      <InlineFieldRow>
         <InlineField label="Created After">
           <DateTimePicker
             label="Date"
@@ -235,11 +245,12 @@ export const QueryEditor: React.FC<Props> = (props) => {
                 />
               </InlineField>
               <InlineField label="Value" grow>
-                <MultiSelect
+                <AsyncMultiSelect
                   value={filter.field && filter.value ? filter.value.split(',').map(value => ({ label: value, value: value })) : []}
-                  options={filterOptions[index] || []}
+                  defaultOptions={filterOptions[index] || []}
+                  loadOptions={() => loadFilterValueOptions(filter.field, dictionary)}
                   onChange={(selected) =>
-                      updateFilter(index, { ...filter, value: selected ? selected.map(option => option.value).join(',') : '' })
+                    updateFilter(index, { ...filter, value: selected ? selected.map(option => option.value).join(',') : '' })
                   }
                   placeholder="Enter value"
                   width={75}
