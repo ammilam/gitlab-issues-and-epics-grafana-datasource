@@ -35,10 +35,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { groupBy, aggregateFunction, typeFilter, filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
+    const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
 
-    let initialDataFrames = this.convertToDataFrames(issues, epics, groupBy);
+    let initialDataFrames = this.convertToDataFrames(issues, epics, groupBy, typeFilter);
 
     let filteredDataFrames = initialDataFrames;
 
@@ -338,7 +338,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 
   // Get all issues and epics for a group
-  async getIssuesAndEpics(groupId: number): Promise<{ issues: any[]; epics: any[], issueFieldValuesDictionary: {} }> {
+  async getIssuesAndEpics(groupId: number): Promise<{ issues: any[]; epics: any[], issueFieldValuesDictionary: {}, epicFieldValuesDictionary: {} }> {
     let url;
     url = `${this.apiUrl}/api/v4/groups/${groupId}`
     try {
@@ -349,9 +349,42 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       });
       const res = await projectResponse.json()
       const projects = res['projects']
+
+      
+      let epics = [];
+      type EpicObjectType = {
+        Time: Date,
+        id: string,
+        title: string,
+        state: string,
+        epic_state: string,
+        type: string,
+        created_at: Date,
+        created_month: string,
+        created_month_number: string,
+        created_year: string,
+        updated_at: Date,
+        updated_month: string,
+        updated_month_number: string,
+        updated_year: string,
+        closed_at: Date,
+        closed_month: string,
+        closed_month_number: string,
+        closed_year: string,
+        closed_by: string,
+        start_date: Date,
+        end_date: Date,
+        due_date: Date,
+        description: string,
+        group_id: string,
+        Value: number,
+        [key: string]: any; // This is the index signature
+      };
+      let epicFieldValuesDictionary: Record<string, ValueTypes[]> = {};
+      
       let issues = [];
       type ValueTypes = string | number | boolean | Date | string[]; // Add here any other type that might appear in your obj.
-      type ObjectType = {
+      type IssueObjectType = {
         Time: Date,
         id: string,
         title: string,
@@ -391,7 +424,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         [key: string]: any; // This is the index signature
       };
       let issueFieldValuesDictionary: Record<string, ValueTypes[]> = {};
-      let epics = [];
 
       const fetchAllPages = async (url: string) => {
         let results = [];
@@ -431,6 +463,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           if (!issue.labels) {
             issue.labels = []
           }
+
           let labels = issue.labels
           let workflow_issue_type;
           let workflow_state;
@@ -475,6 +508,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             default:
               workflow_state = 'Unassigned State';
           }
+          
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
           let created_month = createdDateData.monthName
@@ -511,7 +545,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let type = "issue"
           let Value = 1
 
-          let obj: ObjectType = {
+          let issueObj: IssueObjectType = {
             Time: issue.created_at,
             id: id,
             title: title,
@@ -548,31 +582,122 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             epic_title: epic_title,
             epic_url: epic_url
           }
-          issues.push(obj);
-          Object.keys(obj).forEach((key) => {
+
+          issues.push(issueObj);
+          Object.keys(issueObj).forEach((key) => {
 
             // create an array containing all the values for a field, push it to the objectFieldValues dictionary
             if (issueFieldValuesDictionary[key]) {
-              issueFieldValuesDictionary[key].push(obj[key]);
+              issueFieldValuesDictionary[key].push(issueObj[key]);
             }
             else {
-              issueFieldValuesDictionary[key] = [obj[key]];
+              issueFieldValuesDictionary[key] = [issueObj[key]];
             }
           });
+
         }
       }
 
       let epicResponseUrl = `${this.apiUrl}/api/v4/groups/${groupId}/epics?per_page=100`;
       let groupEpics = await fetchAllPages(epicResponseUrl);
-      epics.push(...groupEpics);
-      return { issues, epics, issueFieldValuesDictionary };
+      for (const epic of groupEpics) {
+        let labels = epic.labels
+        let epic_state;
+
+        switch (true) {
+          case labels.includes('Epic Stage::In Progress'):
+            epic_state = 'In Progress';
+            break;
+          case labels.includes('Epic Stage::New'):
+            epic_state = 'New';
+            break;
+          case labels.includes('Epic Stage::QA'):
+            epic_state = 'QA';
+            break;
+          case labels.includes('Epic Stage::Ready for Development'):
+            epic_state = 'Ready for Development';
+            break;
+          case labels.includes('Epic Stage::Ready for Prod'):
+            epic_state = 'Ready for Prod';
+            break;
+          case labels.includes('Epic Stage::Requirement Gathering'):
+            epic_state = 'Requirement Gathering';
+            break;
+          default:
+            epic_state = 'Unassigned Epic State'; 
+      }
+
+      let created_at = epic.created_at
+      let createdDateData = this.getDateInfo(new Date(created_at))
+      let created_month = createdDateData.monthName
+      let created_month_number = String(createdDateData.monthNumber) || ""
+      let created_year = String(createdDateData.year) || ""
+      let updated_at = epic.updated_at
+      let updatedDateData = this.getDateInfo(new Date(updated_at))
+      let updated_month = updatedDateData.monthName
+      let updated_month_number = String(updatedDateData.monthNumber) || ""
+      let updated_year = String(updatedDateData.year) || ""
+      let closed_at = epic.closed_at ? epic.closed_at : ""
+      let closedDateData = this.getDateInfo(new Date(closed_at))
+      let closed_month = epic.closed_at ? closedDateData.monthName : ""
+      let closed_month_number = epic.closed_at ? String(closedDateData.monthNumber) : ""
+      let closed_year = epic.closed_at ? String(closedDateData.year) : ""
+      let due_date = epic.due_date ? epic.due_date.split("T")[0] : ""
+      let start_date = epic.start_date ? epic.start_date.split("T")[0] : ""
+      let end_date = epic.end_date ? epic.end_date.split("T")[0] : ""
+      let group_id = epic.group_id ? epic.group_id : ""
+      let id = epic.iid ? epic.iid : ""
+      let title = epic.title ? epic.title : ""
+
+      let epicObj: EpicObjectType = {
+        Time: created_at,
+        id: id,
+        title: title,
+        state: epic.state,
+        epic_state: epic_state,
+        type: "epic",
+        group_id: group_id,
+        created_at: created_at,
+        created_month: created_month,
+        created_month_number: created_month_number,
+        created_year: created_year,
+        updated_at: updated_at,
+        updated_month: updated_month,
+        updated_month_number: updated_month_number,
+        updated_year: updated_year,
+        closed_at: closed_at,
+        closed_month: closed_month,
+        closed_month_number: closed_month_number,
+        closed_year: closed_year,
+        closed_by: epic.closed_by,
+        start_date: start_date,
+        end_date: end_date,
+        due_date: due_date,
+        description: epic.description,
+        Value: 1
+      }
+
+      epics.push(epicObj);
+      Object.keys(epicObj).forEach((key) => {
+        // create an array containing all the values for a field, push it to the objectFieldValues dictionary
+        if (epicFieldValuesDictionary[key]) {
+          epicFieldValuesDictionary[key].push(epicObj[key]);
+        }
+        else {
+          epicFieldValuesDictionary[key] = [epicObj[key]];
+        }
+      }
+      );
+    }
+
+      return { issues, epics, issueFieldValuesDictionary, epicFieldValuesDictionary };
     } catch (error) {
       alert(error);
       throw new Error('Failed to fetch issues and epics from Gitlab API');
     }
   }
 
-  convertToDataFrames(issues: any[], epics: any[], groupBy: string[]): MutableDataFrame[] {
+  convertToDataFrames(issues: any[], epics: any[], groupBy: string[], typeFilter: string): MutableDataFrame[] {
     const issueFrame = new MutableDataFrame({
       refId: 'data',
       fields: [
@@ -614,8 +739,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       ],
     });
 
+    if (typeFilter === "issue") {
     for (const issue of issues) {
-
       if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
         for (const assignee of issue['assignees']) {
           issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
@@ -624,9 +749,44 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
       }
     }
-    // for (const epic of epics) {
-    //   frame.add({ id: epic.iid, Time: epic.created_at, Value: 1, type: "epic", project_id: epic.project_id });
-    // }
-    return [issueFrame];
+  }
+
+    const epicFrame = new MutableDataFrame({
+      refId: 'data',
+      fields: [
+        { name: 'Time', type: FieldType.time },
+        { name: 'id', type: FieldType.string },
+        { name: 'title', type: FieldType.string },
+        { name: 'state', type: FieldType.string },
+        { name: 'type', type: FieldType.string },
+        { name: 'project_id', type: FieldType.string },
+        { name: 'created_at', type: FieldType.string },
+        { name: 'created_month', type: FieldType.string },
+        { name: 'created_month_number', type: FieldType.string },
+        { name: 'created_year', type: FieldType.string },
+        { name: 'updated_at', type: FieldType.string },
+        { name: 'updated_month', type: FieldType.string },
+        { name: 'updated_month_number', type: FieldType.string },
+        { name: 'updated_year', type: FieldType.string },
+        { name: 'closed_at', type: FieldType.string },
+        { name: 'closed_month', type: FieldType.string },
+        { name: 'closed_month_number', type: FieldType.string },
+        { name: 'closed_year', type: FieldType.string },
+        { name: 'closed_by', type: FieldType.string },
+        { name: 'description', type: FieldType.string },
+        { name: 'author', type: FieldType.string },
+        { name: 'assignee', type: FieldType.string },
+        { name: 'labels', type: FieldType.other },
+        { name: 'Value', type: FieldType.number }
+      ]
+    });
+
+    if (typeFilter === "epic") {
+    for (const epic of epics) {
+      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['milestone'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['Value']]);
+    }
+  }
+  let frame = typeFilter === "issue" ? issueFrame : epicFrame
+    return [frame];
   }
 }

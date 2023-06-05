@@ -9,11 +9,12 @@ type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 export const QueryEditor: React.FC<Props> = (props) => {
 
-  const loadFieldOptions = useCallback(async (): Promise<any> => {
+  const loadFieldOptions = useCallback(async (type: string): Promise<any> => {
     // Fetch the data once
-    const { issueFieldValuesDictionary } = await props.datasource.getIssuesAndEpics(props.datasource.groupId);
+    const { issueFieldValuesDictionary, epicFieldValuesDictionary } = await props.datasource.getIssuesAndEpics(props.datasource.groupId);
 
-    return issueFieldValuesDictionary;
+    let res = type === "issue" ? issueFieldValuesDictionary : epicFieldValuesDictionary;
+    return res;
 
   }, [props.datasource]);
 
@@ -34,6 +35,7 @@ export const QueryEditor: React.FC<Props> = (props) => {
   const { onChange, query } = props;
   // Set a default value for the typeFilter property
   query.typeFilter = query.typeFilter || 'issue';
+  const type = query.typeFilter;
   query.aggregateFunction = query.aggregateFunction || 'count';
   if (!query.groupBy) {
     // Access the groupBy property
@@ -43,10 +45,10 @@ export const QueryEditor: React.FC<Props> = (props) => {
   const [dictionary, setDictionary] = useState<any>({});
   useEffect(() => {
     (async () => {
-      const newDictionary = await loadFieldOptions();
+      const newDictionary = await loadFieldOptions(type);
       setDictionary(newDictionary);
     })();
-  }, [loadFieldOptions]);
+  }, [loadFieldOptions, type]);
 
   const [fields, setFields] = useState<string[]>([]);
   const [aggregateFunctions] = useState<string[]>(['count']);
@@ -131,7 +133,8 @@ export const QueryEditor: React.FC<Props> = (props) => {
         break;
     }
   };
-  const fieldOptions = loadFieldOptions();
+
+  const fieldOptions = loadFieldOptions(type);
 
   return (
     <div>
@@ -251,12 +254,11 @@ export const QueryEditor: React.FC<Props> = (props) => {
                       ? filter.value.split(',').map(value => ({ label: value, value: value }))
                       : []
                   }
-                  defaultOptions={filterOptions[index] || []}
+                  defaultOptions={filterOptions[index]}
                   loadOptions={() => loadFilterValueOptions(filter.field, dictionary)}
                   onChange={(selected) =>
                     updateFilter(index, { ...filter, value: selected ? selected.map(option => option.value).join(',') : '' })
                   }
-                  placeholder="Enter value"
                   width={75}
                 />
               </InlineField>
