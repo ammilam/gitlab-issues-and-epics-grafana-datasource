@@ -315,6 +315,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'closed_year',
       'closed_at',
       'due_date',
+      'start_date',
       'epic_state'
     ];
   }
@@ -760,6 +761,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'state', type: FieldType.string },
         { name: 'type', type: FieldType.string },
         { name: 'group_id', type: FieldType.string },
+        { name: 'start_date', type: FieldType.string },
         { name: 'created_at', type: FieldType.string },
         { name: 'created_month', type: FieldType.string },
         { name: 'created_month_number', type: FieldType.string },
@@ -784,7 +786,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     if (typeFilter === "epic") {
     for (const epic of data) {
-      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['Value']]);
+      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'],epic['start_date'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['Value']]);
     }
   }
   let frame = typeFilter === "issue" ? issueFrame : epicFrame
