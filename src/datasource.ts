@@ -314,6 +314,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'closed_month_number',
       'closed_year',
       'closed_at',
+      'due_date',
       'epic_state'
     ];
   }
