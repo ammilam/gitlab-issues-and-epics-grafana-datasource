@@ -37,11 +37,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
-
-    let initialDataFrames = this.convertToDataFrames(issues, epics, groupBy, typeFilter);
+    let data = typeFilter === "issue" ? issues : epics;
+    let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
 
     let filteredDataFrames = initialDataFrames;
-
     // Apply the type filter
     if (typeFilter) {
       filteredDataFrames = this.applyTypeFilter(typeFilter, filteredDataFrames);
@@ -115,10 +114,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const updatedTo = updatedBefore ? new Date(updatedBefore) : null;
         const closedFrom = closedAfter ? new Date(closedAfter) : null;
         const closedTo = closedBefore ? new Date(closedBefore) : null;
-
         const isRowMatchingFilters = filters.every((filter) => {
           let { field, value } = filter;
-
           const rowValue = row[field] === null ? 'null' : row[field];
 
           if (value === 'null') {
@@ -154,7 +151,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           closedFilter &&
           isRowMatchingFilters
         ) {
-          const groupValues = groupBy.map((field) => row[field] ?? 'N/A').join('|');
+          const groupValues = groupBy.map((field) => row[field] ?? 'N/A').join('|'); //
           if (!groupedData[groupValues]) {
             groupedData[groupValues] = [];
           }
@@ -291,7 +288,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'id',
       'title',
       'state',
-      'type',
       'project_id',
       'closed_by',
       'milestone',
@@ -318,6 +314,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'closed_month_number',
       'closed_year',
       'closed_at',
+      'epic_state'
     ];
   }
 
@@ -357,7 +354,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         id: string,
         title: string,
         state: string,
-        epic_state: string,
         type: string,
         created_at: Date,
         created_month: string,
@@ -377,6 +373,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         due_date: Date,
         description: string,
         group_id: string,
+        epic_state: string,
         Value: number,
         [key: string]: any; // This is the index signature
       };
@@ -423,6 +420,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
         [key: string]: any; // This is the index signature
       };
+
       let issueFieldValuesDictionary: Record<string, ValueTypes[]> = {};
 
       const fetchAllPages = async (url: string) => {
@@ -601,26 +599,26 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       let epicResponseUrl = `${this.apiUrl}/api/v4/groups/${groupId}/epics?per_page=100`;
       let groupEpics = await fetchAllPages(epicResponseUrl);
       for (const epic of groupEpics) {
-        let labels = epic.labels
+        let epic_labels = epic.labels
         let epic_state;
 
         switch (true) {
-          case labels.includes('Epic Stage::In Progress'):
+          case epic_labels.includes('Epic Stage::In Progress'):
             epic_state = 'In Progress';
             break;
-          case labels.includes('Epic Stage::New'):
+          case epic_labels.includes('Epic Stage::New'):
             epic_state = 'New';
             break;
-          case labels.includes('Epic Stage::QA'):
+          case epic_labels.includes('Epic Stage::QA'):
             epic_state = 'QA';
             break;
-          case labels.includes('Epic Stage::Ready for Development'):
+          case epic_labels.includes('Epic Stage::Ready for Development'):
             epic_state = 'Ready for Development';
             break;
-          case labels.includes('Epic Stage::Ready for Prod'):
+          case epic_labels.includes('Epic Stage::Ready for Prod'):
             epic_state = 'Ready for Prod';
             break;
-          case labels.includes('Epic Stage::Requirement Gathering'):
+          case epic_labels.includes('Epic Stage::Requirement Gathering'):
             epic_state = 'Requirement Gathering';
             break;
           default:
@@ -678,6 +676,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       }
 
       epics.push(epicObj);
+
       Object.keys(epicObj).forEach((key) => {
         // create an array containing all the values for a field, push it to the objectFieldValues dictionary
         if (epicFieldValuesDictionary[key]) {
@@ -697,7 +696,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
   }
 
-  convertToDataFrames(issues: any[], epics: any[], groupBy: string[], typeFilter: string): MutableDataFrame[] {
+  convertToDataFrames(data: any[], groupBy: string[], typeFilter: string): MutableDataFrame[] {
     const issueFrame = new MutableDataFrame({
       refId: 'data',
       fields: [
@@ -740,7 +739,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     });
 
     if (typeFilter === "issue") {
-    for (const issue of issues) {
+    for (const issue of data) {
       if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
         for (const assignee of issue['assignees']) {
           issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
@@ -759,7 +758,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'title', type: FieldType.string },
         { name: 'state', type: FieldType.string },
         { name: 'type', type: FieldType.string },
-        { name: 'project_id', type: FieldType.string },
+        { name: 'group_id', type: FieldType.string },
         { name: 'created_at', type: FieldType.string },
         { name: 'created_month', type: FieldType.string },
         { name: 'created_month_number', type: FieldType.string },
@@ -777,13 +776,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'author', type: FieldType.string },
         { name: 'assignee', type: FieldType.string },
         { name: 'labels', type: FieldType.other },
+        { name: 'epic_state', type: FieldType.string },
         { name: 'Value', type: FieldType.number }
       ]
     });
 
     if (typeFilter === "epic") {
-    for (const epic of epics) {
-      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['milestone'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['Value']]);
+    for (const epic of data) {
+      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['Value']]);
     }
   }
   let frame = typeFilter === "issue" ? issueFrame : epicFrame
