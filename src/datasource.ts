@@ -316,7 +316,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'closed_at',
       'due_date',
       'start_date',
-      'epic_state'
+      'epic_state',
+      'epic_c3'
     ];
   }
 
@@ -376,6 +377,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         description: string,
         group_id: string,
         epic_state: string,
+        epic_c3: string,
         Value: number,
         [key: string]: any; // This is the index signature
       };
@@ -603,6 +605,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       for (const epic of groupEpics) {
         let epic_labels = epic.labels
         let epic_state;
+        let epic_c3;
 
         switch (true) {
           case epic_labels.includes('Epic Stage::In Progress'):
@@ -627,6 +630,19 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             epic_state = 'Unassigned Epic State'; 
       }
 
+      switch (true) {
+        case epic_labels.includes('C³ - Cloud Strategy'):
+          epic_c3 = 'Cloud Strategy';
+          break;
+        case epic_labels.includes('C³ - Cost Savings'):
+          epic_c3 = 'Cost Savings';
+          break;
+        case epic_labels.includes('C³ - Customer'):
+          epic_c3 = 'Customer';
+          break;
+        default:
+          epic_c3 = 'No C3'; 
+    }
       let created_at = epic.created_at
       let createdDateData = this.getDateInfo(new Date(created_at))
       let created_month = createdDateData.monthName
@@ -674,6 +690,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         end_date: end_date,
         due_date: due_date,
         description: epic.description,
+        epic_c3: epic_c3,
         Value: 1
       }
 
@@ -781,13 +798,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'assignee', type: FieldType.string },
         { name: 'labels', type: FieldType.other },
         { name: 'epic_state', type: FieldType.string },
+        { name: 'epic_c3', type: FieldType.string },
         { name: 'Value', type: FieldType.number }
       ]
     });
 
     if (typeFilter === "epic") {
     for (const epic of data) {
-      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'],epic['start_date'],epic['due_date'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['Value']]);
+      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'],epic['start_date'],epic['due_date'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['Value']]);
     }
   }
   let frame = typeFilter === "issue" ? issueFrame : epicFrame
