@@ -648,8 +648,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
 
     switch (true) {
-      case epic_labels.includes('Channel::Enterprise Project'):
-        epic_channel = 'Enterprise';
+      case epic_labels.includes('Channel::Enterprise'):
+        epic_channel = 'Enterprise Project';
         break;
       case epic_labels.includes('Channel::CF'):
         epic_channel = 'Internal CF Project';
