@@ -317,7 +317,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'due_date',
       'start_date',
       'epic_state',
-      'epic_c3'
+      'epic_c3',
+      'epic_channel'
     ];
   }
 
