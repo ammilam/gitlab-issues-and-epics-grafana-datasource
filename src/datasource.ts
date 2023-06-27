@@ -318,7 +318,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'start_date',
       'epic_state',
       'epic_c3',
-      'epic_channel'
+      'epic_channel',
+      'epic_rank'
     ];
   }
 
@@ -351,7 +352,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const res = await projectResponse.json()
       const projects = res['projects']
 
-      
+
       let epics = [];
       type EpicObjectType = {
         Time: Date,
@@ -380,11 +381,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         epic_state: string,
         epic_c3: string,
         epic_channel: string,
+        epic_rank: string,
         Value: number,
         [key: string]: any; // This is the index signature
       };
       let epicFieldValuesDictionary: Record<string, ValueTypes[]> = {};
-      
+
       let issues = [];
       type ValueTypes = string | number | boolean | Date | string[]; // Add here any other type that might appear in your obj.
       type IssueObjectType = {
@@ -512,7 +514,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             default:
               workflow_state = 'Unassigned State';
           }
-          
+
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
           let created_month = createdDateData.monthName
@@ -609,6 +611,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let epic_state;
         let epic_c3;
         let epic_channel;
+        let epic_rank;
 
         switch (true) {
           case epic_labels.includes('Epic Stage::In Progress'):
@@ -630,102 +633,123 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             epic_state = 'Requirement Gathering';
             break;
           default:
-            epic_state = 'Unassigned Epic State'; 
-      }
-
-      switch (true) {
-        case epic_labels.includes('C³ - Cloud Strategy'):
-          epic_c3 = 'Cloud Strategy';
-          break;
-        case epic_labels.includes('C³ - Cost Savings'):
-          epic_c3 = 'Cost Savings';
-          break;
-        case epic_labels.includes('C³ - Customer'):
-          epic_c3 = 'Customer';
-          break;
-        default:
-          epic_c3 = 'No C3'; 
-    }
-
-    switch (true) {
-      case epic_labels.includes('Channel::Enterprise'):
-        epic_channel = 'Enterprise Project';
-        break;
-      case epic_labels.includes('Channel::CF'):
-        epic_channel = 'Internal CF Project';
-        break;
-      case epic_labels.includes('Channel::Non-Project Related'):
-        epic_channel = 'Non-Project Related';
-        break;
-      default:
-        epic_channel = 'No Channel Listed'; 
-  }
-
-      let created_at = epic.created_at
-      let createdDateData = this.getDateInfo(new Date(created_at))
-      let created_month = createdDateData.monthName
-      let created_month_number = String(createdDateData.monthNumber) || ""
-      let created_year = String(createdDateData.year) || ""
-      let updated_at = epic.updated_at
-      let updatedDateData = this.getDateInfo(new Date(updated_at))
-      let updated_month = updatedDateData.monthName
-      let updated_month_number = String(updatedDateData.monthNumber) || ""
-      let updated_year = String(updatedDateData.year) || ""
-      let closed_at = epic.closed_at ? epic.closed_at : ""
-      let closedDateData = this.getDateInfo(new Date(closed_at))
-      let closed_month = epic.closed_at ? closedDateData.monthName : ""
-      let closed_month_number = epic.closed_at ? String(closedDateData.monthNumber) : ""
-      let closed_year = epic.closed_at ? String(closedDateData.year) : ""
-      let due_date = epic.due_date ? epic.due_date.split("T")[0] : ""
-      let start_date = epic.start_date ? epic.start_date.split("T")[0] : ""
-      let end_date = epic.end_date ? epic.end_date.split("T")[0] : ""
-      let group_id = epic.group_id ? epic.group_id : ""
-      let id = epic.iid ? epic.iid : ""
-      let title = epic.title ? epic.title : ""
-
-      let epicObj: EpicObjectType = {
-        Time: created_at,
-        id: id,
-        title: title,
-        state: epic.state,
-        epic_state: epic_state,
-        type: "epic",
-        group_id: group_id,
-        created_at: created_at,
-        created_month: created_month,
-        created_month_number: created_month_number,
-        created_year: created_year,
-        updated_at: updated_at,
-        updated_month: updated_month,
-        updated_month_number: updated_month_number,
-        updated_year: updated_year,
-        closed_at: closed_at,
-        closed_month: closed_month,
-        closed_month_number: closed_month_number,
-        closed_year: closed_year,
-        closed_by: epic.closed_by,
-        start_date: start_date,
-        end_date: end_date,
-        due_date: due_date,
-        description: epic.description,
-        epic_c3: epic_c3,
-        epic_channel: epic_channel,
-        Value: 1
-      }
-
-      epics.push(epicObj);
-
-      Object.keys(epicObj).forEach((key) => {
-        // create an array containing all the values for a field, push it to the objectFieldValues dictionary
-        if (epicFieldValuesDictionary[key]) {
-          epicFieldValuesDictionary[key].push(epicObj[key]);
+            epic_state = 'Unassigned Epic State';
         }
-        else {
-          epicFieldValuesDictionary[key] = [epicObj[key]];
+
+        switch (true) {
+          case epic_labels.includes('C³ - Cloud Strategy'):
+            epic_c3 = 'Cloud Strategy';
+            break;
+          case epic_labels.includes('C³ - Cost Savings'):
+            epic_c3 = 'Cost Savings';
+            break;
+          case epic_labels.includes('C³ - Customer'):
+            epic_c3 = 'Customer';
+            break;
+          default:
+            epic_c3 = 'No C3';
         }
+
+        switch (true) {
+          case epic_labels.includes('Channel::Enterprise'):
+            epic_channel = 'Enterprise Project';
+            break;
+          case epic_labels.includes('Channel::CF'):
+            epic_channel = 'Internal CF Project';
+            break;
+          case epic_labels.includes('Channel::Non-Project Related'):
+            epic_channel = 'Non-Project Related';
+            break;
+          default:
+            epic_channel = 'No Channel Listed';
+        }
+
+        switch (true) {
+          case epic_labels.includes('Epic Rank::1'):
+            epic_rank = '1';
+            break;
+          case epic_labels.includes('Epic Rank::2'):
+            epic_rank = '2';
+            break;
+          case epic_labels.includes('Epic Rank::3'):
+            epic_rank = '3';
+            break;
+          case epic_labels.includes('Epic Rank::4'):
+            epic_rank = '4';
+            break;
+          case epic_labels.includes('Epic Rank::5'):
+            epic_rank = '5';
+            break;
+          default:
+            epic_rank = 'Not Ranked';
+        }
+
+        let created_at = epic.created_at
+        let createdDateData = this.getDateInfo(new Date(created_at))
+        let created_month = createdDateData.monthName
+        let created_month_number = String(createdDateData.monthNumber) || ""
+        let created_year = String(createdDateData.year) || ""
+        let updated_at = epic.updated_at
+        let updatedDateData = this.getDateInfo(new Date(updated_at))
+        let updated_month = updatedDateData.monthName
+        let updated_month_number = String(updatedDateData.monthNumber) || ""
+        let updated_year = String(updatedDateData.year) || ""
+        let closed_at = epic.closed_at ? epic.closed_at : ""
+        let closedDateData = this.getDateInfo(new Date(closed_at))
+        let closed_month = epic.closed_at ? closedDateData.monthName : ""
+        let closed_month_number = epic.closed_at ? String(closedDateData.monthNumber) : ""
+        let closed_year = epic.closed_at ? String(closedDateData.year) : ""
+        let due_date = epic.due_date ? epic.due_date.split("T")[0] : ""
+        let start_date = epic.start_date ? epic.start_date.split("T")[0] : ""
+        let end_date = epic.end_date ? epic.end_date.split("T")[0] : ""
+        let group_id = epic.group_id ? epic.group_id : ""
+        let id = epic.iid ? epic.iid : ""
+        let title = epic.title ? epic.title : ""
+
+        let epicObj: EpicObjectType = {
+          Time: created_at,
+          id: id,
+          title: title,
+          state: epic.state,
+          epic_state: epic_state,
+          type: "epic",
+          group_id: group_id,
+          created_at: created_at,
+          created_month: created_month,
+          created_month_number: created_month_number,
+          created_year: created_year,
+          updated_at: updated_at,
+          updated_month: updated_month,
+          updated_month_number: updated_month_number,
+          updated_year: updated_year,
+          closed_at: closed_at,
+          closed_month: closed_month,
+          closed_month_number: closed_month_number,
+          closed_year: closed_year,
+          closed_by: epic.closed_by,
+          start_date: start_date,
+          end_date: end_date,
+          due_date: due_date,
+          description: epic.description,
+          epic_c3: epic_c3,
+          epic_channel: epic_channel,
+          epic_rank: epic_rank,
+          Value: 1
+        }
+
+        epics.push(epicObj);
+
+        Object.keys(epicObj).forEach((key) => {
+          // create an array containing all the values for a field, push it to the objectFieldValues dictionary
+          if (epicFieldValuesDictionary[key]) {
+            epicFieldValuesDictionary[key].push(epicObj[key]);
+          }
+          else {
+            epicFieldValuesDictionary[key] = [epicObj[key]];
+          }
+        }
+        );
       }
-      );
-    }
 
       return { issues, epics, issueFieldValuesDictionary, epicFieldValuesDictionary };
     } catch (error) {
@@ -777,16 +801,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     });
 
     if (typeFilter === "issue") {
-    for (const issue of data) {
-      if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
-        for (const assignee of issue['assignees']) {
-          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+      for (const issue of data) {
+        if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
+          for (const assignee of issue['assignees']) {
+            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+          }
+        } else {
+          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
         }
-      } else {
-        issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
       }
     }
-  }
 
     const epicFrame = new MutableDataFrame({
       refId: 'data',
@@ -819,16 +843,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'epic_state', type: FieldType.string },
         { name: 'epic_c3', type: FieldType.string },
         { name: 'epic_channel', type: FieldType.string },
+        { name: 'epic_rank', type: FieldType.string },
         { name: 'Value', type: FieldType.number }
       ]
     });
 
     if (typeFilter === "epic") {
-    for (const epic of data) {
-      epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'],epic['start_date'],epic['due_date'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['Value']]);
+      for (const epic of data) {
+        epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], epic['start_date'], epic['due_date'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['Value']]);
+      }
     }
-  }
-  let frame = typeFilter === "issue" ? issueFrame : epicFrame
+    let frame = typeFilter === "issue" ? issueFrame : epicFrame
     return [frame];
   }
 }
