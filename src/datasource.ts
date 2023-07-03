@@ -520,12 +520,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let created_month = createdDateData.monthName
           let created_month_number = String(createdDateData.monthNumber) || ""
           let created_year = String(createdDateData.year) || ""
-          let updated_at = issue.updated_at
+          let updated_at = issue.updated_at || null
           let updatedDateData = this.getDateInfo(new Date(updated_at))
           let updated_month = updatedDateData.monthName
           let updated_month_number = String(updatedDateData.monthNumber) || ""
           let updated_year = String(updatedDateData.year) || ""
-          let closed_at = issue.closed_at ? issue.closed_at : ""
+          let closed_at = issue.closed_at ? issue.closed_at : null
           let closedDateData = this.getDateInfo(new Date(closed_at))
           let closed_month = issue.closed_at ? closedDateData.monthName : ""
           let closed_month_number = issue.closed_at ? String(closedDateData.monthNumber) : ""
@@ -689,19 +689,19 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let created_month = createdDateData.monthName
         let created_month_number = String(createdDateData.monthNumber) || ""
         let created_year = String(createdDateData.year) || ""
-        let updated_at = epic.updated_at
+        let updated_at = epic.updated_at || null
         let updatedDateData = this.getDateInfo(new Date(updated_at))
         let updated_month = updatedDateData.monthName
         let updated_month_number = String(updatedDateData.monthNumber) || ""
         let updated_year = String(updatedDateData.year) || ""
-        let closed_at = epic.closed_at ? epic.closed_at : ""
+        let closed_at = epic.closed_at ? epic.closed_at : null
         let closedDateData = this.getDateInfo(new Date(closed_at))
         let closed_month = epic.closed_at ? closedDateData.monthName : ""
         let closed_month_number = epic.closed_at ? String(closedDateData.monthNumber) : ""
         let closed_year = epic.closed_at ? String(closedDateData.year) : ""
-        let due_date = epic.due_date ? epic.due_date.split("T")[0] : ""
-        let start_date = epic.start_date ? epic.start_date.split("T")[0] : ""
-        let end_date = epic.end_date ? epic.end_date.split("T")[0] : ""
+        let due_date = epic.due_date ? epic.due_date.split("T")[0] : null
+        let start_date = epic.start_date ? epic.start_date.split("T")[0] : null
+        let end_date = epic.end_date ? epic.end_date.split("T")[0] : null
         let group_id = epic.group_id ? epic.group_id : ""
         let id = epic.iid ? epic.iid : ""
         let title = epic.title ? epic.title : ""
@@ -770,15 +770,15 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'type', type: FieldType.string },
         { name: 'workflow_issue_type', type: FieldType.string },
         { name: 'project_id', type: FieldType.string },
-        { name: 'created_at', type: FieldType.string },
+        { name: 'created_at', type: FieldType.time },
         { name: 'created_month', type: FieldType.string },
         { name: 'created_month_number', type: FieldType.string },
         { name: 'created_year', type: FieldType.string },
-        { name: 'updated_at', type: FieldType.string },
+        { name: 'updated_at', type: FieldType.time },
         { name: 'updated_month', type: FieldType.string },
         { name: 'updated_month_number', type: FieldType.string },
         { name: 'updated_year', type: FieldType.string },
-        { name: 'closed_at', type: FieldType.string },
+        { name: 'closed_at', type: FieldType.time },
         { name: 'closed_month', type: FieldType.string },
         { name: 'closed_month_number', type: FieldType.string },
         { name: 'closed_year', type: FieldType.string },
@@ -821,17 +821,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'state', type: FieldType.string },
         { name: 'type', type: FieldType.string },
         { name: 'group_id', type: FieldType.string },
-        { name: 'start_date', type: FieldType.string },
-        { name: 'due_date', type: FieldType.string },
-        { name: 'created_at', type: FieldType.string },
+        { name: 'start_date', type: FieldType.time },
+        { name: 'due_date', type: FieldType.time },
+        { name: 'created_at', type: FieldType.time },
         { name: 'created_month', type: FieldType.string },
         { name: 'created_month_number', type: FieldType.string },
         { name: 'created_year', type: FieldType.string },
-        { name: 'updated_at', type: FieldType.string },
+        { name: 'updated_at', type: FieldType.time },
         { name: 'updated_month', type: FieldType.string },
         { name: 'updated_month_number', type: FieldType.string },
         { name: 'updated_year', type: FieldType.string },
-        { name: 'closed_at', type: FieldType.string },
+        { name: 'closed_at', type: FieldType.time },
         { name: 'closed_month', type: FieldType.string },
         { name: 'closed_month_number', type: FieldType.string },
         { name: 'closed_year', type: FieldType.string },
@@ -850,7 +850,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([epic['Time'], epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], epic['start_date'], epic['due_date'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
