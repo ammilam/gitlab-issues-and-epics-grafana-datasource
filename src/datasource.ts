@@ -319,7 +319,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'epic_state',
       'epic_c3',
       'epic_channel',
-      'epic_rank'
+      'epic_rank',
+      'epic_assignees',
     ];
   }
 
@@ -382,6 +383,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         epic_c3: string,
         epic_channel: string,
         epic_rank: string,
+        epic_assignees: string,
         Value: number,
         [key: string]: any; // This is the index signature
       };
@@ -536,8 +538,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let epic_title = issue.epic.title ? issue.epic.title : "No Epic Assigned"
           let epic_url = issue.epic.url ? issue.epic.url : ""
           let ticket_age = !closed_at ? this.getDiffInDays(new Date(created_at), new Date()) : this.getDiffInDays(new Date(created_at), new Date(closed_at))
-          let assignee = issue.assignee.username ? issue.assignee.username : ""
-          let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.username) : []
+          let assignee = issue.assignee.username ? issue.assignee.name : ""
+          let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.name) : []
           let closed_by = issue.closed_by.username ? issue.closed_by.username : ""
           let milestone = issue.milestone ? issue.milestone : ""
           let description = issue.description ? issue.description : ""
@@ -607,6 +609,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       let epicResponseUrl = `${this.apiUrl}/api/v4/groups/${groupId}/epics?per_page=100`;
       let groupEpics = await fetchAllPages(epicResponseUrl);
       for (const epic of groupEpics) {
+        
+        
+        // find all the child issues of an epic, and create an array from the assignees
         let epic_labels = epic.labels
         let epic_state;
         let epic_c3;
@@ -706,6 +711,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let id = epic.iid ? epic.iid : ""
         let title = epic.title ? epic.title : ""
 
+       // get an epics issues and create an array from the assignees
+        let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || []
+        let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || []
+        // ensure that the assignees array is unique
+        epic_assignees = [...new Set(epic_assignees)]
+        let strEpicAssignees = epic_assignees.join(", ")
+        
         let epicObj: EpicObjectType = {
           Time: created_at,
           id: id,
@@ -734,6 +746,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           epic_c3: epic_c3,
           epic_channel: epic_channel,
           epic_rank: epic_rank,
+          epic_assignees: strEpicAssignees,
           Value: 1
         }
 
@@ -844,13 +857,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'epic_c3', type: FieldType.string },
         { name: 'epic_channel', type: FieldType.string },
         { name: 'epic_rank', type: FieldType.string },
+        { name: 'epic_assignees', type: FieldType.string },
         { name: 'Value', type: FieldType.number }
       ]
     });
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
