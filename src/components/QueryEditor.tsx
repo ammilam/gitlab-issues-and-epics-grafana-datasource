@@ -67,10 +67,15 @@ export const QueryEditor: React.FC<Props> = (props) => {
   // Initialize the filters state
   const [filters, setFilters] = useState<Filter[]>(query.filters);
   const [filterOptions, setFilterOptions] = useState<Array<Array<SelectableValue<string>>>>([]);
+  const [regexFilters, setRegexFilters] = useState<Filter[]>(query.filters);
 
   // Add event handlers for filters
   const addFilter = () => {
     setFilters([...filters, { field: '', value: '' }]);
+  };
+
+  const addRegexFilter = () => {
+    setRegexFilters([...regexFilters, {field: '' , value: ''}]);
   };
 
   const updateFilter = async (index: number, updatedFilter: Filter) => {
@@ -87,9 +92,21 @@ export const QueryEditor: React.FC<Props> = (props) => {
     }
   };
 
+  const updateRegexFilter = (index: number, updatedFilter: Filter) => {
+    const newFilters = regexFilters.map((filter, i) => (i === index ? updatedFilter : filter));
+    setRegexFilters(newFilters);
+    onChange({ ...query, filters: newFilters });
+  };
+
   const removeFilter = (index: number) => {
     const newFilters = filters.filter((_, i) => i !== index);
     setFilters(newFilters);
+    onChange({ ...query, filters: newFilters });
+  };
+
+  const removeRegexFilter = (index: number) => {
+    const newFilters = regexFilters.filter((_, i) => i !== index);
+    setRegexFilters(newFilters);
     onChange({ ...query, filters: newFilters });
   };
 
@@ -280,6 +297,48 @@ export const QueryEditor: React.FC<Props> = (props) => {
             Add Filter
           </Button>
         </div>
+      </InlineFieldRow>
+      <InlineFieldRow>
+        <div>
+          <h3>Regex Filters</h3>
+          {regexFilters.map((filter, index) => (
+            <InlineFieldRow key={index}>
+              <InlineField label="Field" grow>
+                <Select
+                  options={fields.map((field) => ({ label: field, value: field }))}
+                  value={filter.field}
+                  onChange={(selected) =>
+                    updateRegexFilter(index, { ...filter, field: selected.value || '' })
+                  }
+                  placeholder="Select a field"
+                  width={30}
+                />
+              </InlineField>
+              <InlineField label="Regex Pattern">
+                <input
+                  type="text"
+                  value={filter.value}
+                  onChange={(e) => updateRegexFilter(index, { ...filter, value: e.target.value })}
+                />
+              </InlineField>
+              <InlineField>
+                <Button
+                  variant="destructive"
+                  onClick={() => removeRegexFilter(index)}
+                  icon="trash-alt"
+                  title="Remove filter"
+                />
+              </InlineField>
+            </InlineFieldRow>
+          ))}
+          <Button
+            icon="plus"
+            onClick={addRegexFilter}
+            title="Add filter"
+          >
+            Add Filter
+          </Button>
+          </div>
       </InlineFieldRow>
     </div>
   );
