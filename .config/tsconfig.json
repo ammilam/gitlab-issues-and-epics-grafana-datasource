@@ -5,7 +5,13 @@
  * https://grafana.github.io/plugin-tools/docs/advanced-configuration#extending-the-typescript-config
  */
  {
+  
   "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
     "alwaysStrict": true,
     "declaration": false,
     "rootDir": "../src",
@@ -22,5 +28,6 @@
     "transpileOnly": true
   },
   "include": ["../src", "./types"],
-  "extends": "@grafana/tsconfig"
+  "extends": "@grafana/tsconfig",
+  
 }
