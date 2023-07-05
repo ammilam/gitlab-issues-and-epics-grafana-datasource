@@ -24,6 +24,7 @@ export interface MyQuery extends DataQuery {
   dueDateBefore?: Date | null;
   filters?: Filter[]
   field?: string;
+  regexFilters?: Filter[];
 }
 
 /**

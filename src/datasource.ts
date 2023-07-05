@@ -35,7 +35,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null } = options.targets[0];
+    const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null, regexFilters} = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
     let data = typeFilter === "issue" ? issues : epics;
     let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
@@ -62,11 +62,46 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         closedBefore || null,
         filteredDataFrames,
         filters || [],
+        typeFilter || "",
+        regexFilters || []
       );
     }
     const response = { data: filteredDataFrames };
     return response;
   }
+
+  applyRegexFilters(
+    regexFilters: Array<{ field: string; value: string | string[]; }>,
+    dataFrames: MutableDataFrame[]
+  ): MutableDataFrame[] {
+    const isRowMatchingRebgexFilters = (row: any) => {
+      return regexFilters.every((filter) => {
+        let { field, value } = filter;
+        let regex = new RegExp(value as string);
+        const rowValue = row[field] === null ? 'null' : row[field];
+
+        if (value === 'null') {
+          return rowValue === null;
+        }
+          return regex.test(rowValue)
+      });
+    }
+    return dataFrames.map((dataFrame) => {
+      const filteredRows = dataFrame.toArray().filter((row) => {
+        return isRowMatchingRebgexFilters(row);
+      });
+
+      const resultDataFrame = new MutableDataFrame({
+        refId: dataFrame.refId,
+        fields: dataFrame.fields,
+      });
+
+      filteredRows.forEach((row) => resultDataFrame.add(row));
+      return resultDataFrame;
+    })
+  } 
+
+
 
   applyTypeFilter(
     typeFilter: string,
@@ -100,7 +135,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     closedBefore: Date | null,
     dataFrames: MutableDataFrame[],
     filters: Array<{ field: string; value: string | string[]; }>,
-    typeFilter?: string
+    typeFilter?: string,
+    regexFilters?: Array<{ field: string; value: string | string[]; }>
   ): MutableDataFrame[] {
     const transformedDataFrames = dataFrames.map((dataFrame) => {
       const groupedData: Record<string, any[]> = {};
