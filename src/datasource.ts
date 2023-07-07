@@ -39,7 +39,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
     let data = typeFilter === "issue" ? issues : epics;
     let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
-
     let filteredDataFrames = initialDataFrames;
     // Apply the type filter
     if (typeFilter) {
@@ -66,42 +65,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         regexFilters || []
       );
     }
+
     const response = { data: filteredDataFrames };
     return response;
   }
-
-  applyRegexFilters(
-    regexFilters: Array<{ field: string; value: string | string[]; }>,
-    dataFrames: MutableDataFrame[]
-  ): MutableDataFrame[] {
-    const isRowMatchingRebgexFilters = (row: any) => {
-      return regexFilters.every((filter) => {
-        let { field, value } = filter;
-        let regex = new RegExp(value as string);
-        const rowValue = row[field] === null ? 'null' : row[field];
-
-        if (value === 'null') {
-          return rowValue === null;
-        }
-          return regex.test(rowValue)
-      });
-    }
-    return dataFrames.map((dataFrame) => {
-      const filteredRows = dataFrame.toArray().filter((row) => {
-        return isRowMatchingRebgexFilters(row);
-      });
-
-      const resultDataFrame = new MutableDataFrame({
-        refId: dataFrame.refId,
-        fields: dataFrame.fields,
-      });
-
-      filteredRows.forEach((row) => resultDataFrame.add(row));
-      return resultDataFrame;
-    })
-  } 
-
-
 
   applyTypeFilter(
     typeFilter: string,
@@ -168,6 +135,20 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             return rowValue === value
           }
         });
+
+        const isRowMatchingRebgexFilters = (row: any) => {
+          return regexFilters?.every((filter) => {
+            let { field, value } = filter;
+            let regex = new RegExp(value as string);
+            const rowValue = row[field] === null ? 'null' : row[field];
+    
+            if (value === 'null') {
+              return rowValue === null;
+            }
+              return regex.test(rowValue)
+          });
+        }
+
         const createdFilter =
           (!createdAfter || !createdFrom || created >= createdFrom) &&
           (!createdBefore || !createdTo || created <= createdTo);
@@ -185,7 +166,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           createdFilter &&
           updatedFilter &&
           closedFilter &&
-          isRowMatchingFilters
+          isRowMatchingFilters &&
+          isRowMatchingRebgexFilters(row)
         ) {
           const groupValues = groupBy.map((field) => row[field] ?? 'N/A').join('|'); //
           if (!groupedData[groupValues]) {

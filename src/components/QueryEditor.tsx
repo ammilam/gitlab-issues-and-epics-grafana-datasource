@@ -63,11 +63,12 @@ export const QueryEditor: React.FC<Props> = (props) => {
 
   // Set a default value for the filters property
   query.filters = query.filters || [];
+  query.regexFilters = query.regexFilters || [];
 
   // Initialize the filters state
   const [filters, setFilters] = useState<Filter[]>(query.filters);
   const [filterOptions, setFilterOptions] = useState<Array<Array<SelectableValue<string>>>>([]);
-  const [regexFilters, setRegexFilters] = useState<Filter[]>(query.filters);
+  const [regexFilters, setRegexFilters] = useState<Filter[]>(query.regexFilters);
 
   // Add event handlers for filters
   const addFilter = () => {
@@ -92,10 +93,10 @@ export const QueryEditor: React.FC<Props> = (props) => {
     }
   };
 
-  const updateRegexFilter = (index: number, updatedFilter: Filter) => {
-    const newFilters = regexFilters.map((filter, i) => (i === index ? updatedFilter : filter));
-    setRegexFilters(newFilters);
-    onChange({ ...query, filters: newFilters });
+  const updateRegexFilter = (index: number, updatedRegexFilter: Filter) => {
+    const newRegexFilters = regexFilters.map((regexFilter, i) => (i === index ? updatedRegexFilter : regexFilter));
+    setRegexFilters(newRegexFilters);
+    onChange({ ...query, regexFilters: newRegexFilters });
   };
 
   const removeFilter = (index: number) => {
@@ -105,9 +106,9 @@ export const QueryEditor: React.FC<Props> = (props) => {
   };
 
   const removeRegexFilter = (index: number) => {
-    const newFilters = regexFilters.filter((_, i) => i !== index);
-    setRegexFilters(newFilters);
-    onChange({ ...query, filters: newFilters });
+    const newRegexFilters = regexFilters.filter((_, i) => i !== index);
+    setRegexFilters(newRegexFilters);
+    onChange({ ...query, regexFilters: newRegexFilters });
   };
 
   const onGroupByChange = (selected: Array<SelectableValue<string>>) => {
@@ -301,14 +302,14 @@ export const QueryEditor: React.FC<Props> = (props) => {
       <InlineFieldRow>
         <div>
           <h3>Regex Filters</h3>
-          {regexFilters.map((filter, index) => (
+          {regexFilters.map((regexFilter, index) => (
             <InlineFieldRow key={index}>
               <InlineField label="Field" grow>
                 <Select
                   options={fields.map((field) => ({ label: field, value: field }))}
-                  value={filter.field}
+                  value={regexFilter.field}
                   onChange={(selected) =>
-                    updateRegexFilter(index, { ...filter, field: selected.value || '' })
+                    updateRegexFilter(index, { ...regexFilter, field: selected.value || '' })
                   }
                   placeholder="Select a field"
                   width={30}
@@ -317,8 +318,8 @@ export const QueryEditor: React.FC<Props> = (props) => {
               <InlineField label="Regex Pattern">
                 <input
                   type="text"
-                  value={filter.value}
-                  onChange={(e) => updateRegexFilter(index, { ...filter, value: e.target.value })}
+                  value={regexFilter.value}
+                  onChange={(e) => updateRegexFilter(index, { ...regexFilter, value: e.target.value })}
                 />
               </InlineField>
               <InlineField>
