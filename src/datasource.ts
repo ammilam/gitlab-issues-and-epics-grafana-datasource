@@ -35,7 +35,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null, regexFilters} = options.targets[0];
+    const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null, regexFilters } = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
     let data = typeFilter === "issue" ? issues : epics;
     let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
@@ -141,11 +141,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             let { field, value } = filter;
             let regex = new RegExp(value as string);
             const rowValue = row[field] === null ? 'null' : row[field];
-    
+
             if (value === 'null') {
               return rowValue === null;
             }
-              return regex.test(rowValue)
+            return regex.test(rowValue)
           });
         }
 
@@ -339,6 +339,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'epic_channel',
       'epic_rank',
       'epic_assignees',
+      'story_ci'
     ];
   }
 
@@ -413,6 +414,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         Time: Date,
         id: string,
         title: string,
+        story_ci: string,
         state: string,
         workflow_state: string,
         workflow_issue_type: string,
@@ -493,46 +495,32 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let labels = issue.labels
           let workflow_issue_type;
           let workflow_state;
+          let story_ci;
 
+          const issueTypeMatch = labels.some((string: string) => /IssueType/.test(string));
+          const workflowMatch = labels.some((string: string) => /Workflow/.test(string));
 
-          switch (true) {
-            case labels.includes('IssueType::Research Spike'):
-              workflow_issue_type = 'Research Spike';
-              break;
-            case labels.includes('IssueType::Bug'):
-              workflow_issue_type = 'Bug';
-              break;
-            case labels.includes('IssueType::Story'):
-              workflow_issue_type = 'Story';
-              break;
-            case labels.includes('IssueType::Knowledge Transfer'):
-              workflow_issue_type = 'Knowledge Transfer';
-              break;
-            case labels.includes('IssueType::Testing Task'):
-              workflow_issue_type = 'Testing Task';
-              break;
-            default:
-              workflow_issue_type = 'Unassigned IssueType';
+          const ciMatch = labels.some((string: string) => /CI::[A-Za-z0-9\s]+::[A-Za-z0-9\s]+/.test(string));
+
+          if (ciMatch === true) {
+            story_ci = labels.filter((label: string) => label.match(/CI::[A-Za-z0-9\s]+::[A-Za-z0-9\s]+/))[0]
+            story_ci = story_ci.match(/CI::[A-Za-z0-9\s]+::(.*)/)[1]
+          } else if (ciMatch === false) {
+            story_ci = 'Unassigned CI'
           }
 
-          switch (true) {
-            case labels.includes('Workflow::CF Backlog'):
-              workflow_state = 'Backlog';
-              break;
-            case labels.includes('Workflow::In Progress'):
-              workflow_state = 'In Progress';
-              break;
-            case labels.includes('Workflow::Blocked'):
-              workflow_state = 'Blocked';
-              break;
-            case labels.includes('Workflow::Pending Verification'):
-              workflow_state = 'Pending Verification';
-              break;
-            case labels.includes('Workflow::Complete'):
-              workflow_state = 'Complete';
-              break;
-            default:
-              workflow_state = 'Unassigned State';
+          if (issueTypeMatch === false) {
+            workflow_issue_type = 'Unassigned IssueType';
+          } else if (issueTypeMatch === true) {
+            workflow_issue_type = labels.filter((label: string) => label.match(/IssueType::[A-Za-z0-9\s]+/))[0]
+            workflow_issue_type = workflow_issue_type.match(/IssueType::(.*)$/)[1]
+          }
+
+          if (workflowMatch === false) {
+            workflow_state = 'Unassigned State';
+          } else if (workflowMatch === true) {
+            workflow_state = labels.filter((label: string) => label.match(/Workflow::[A-Za-z0-9\s]+/))[0]
+            workflow_state = workflow_state.match(/Workflow::(.*)$/)[1]
           }
 
           let created_at = issue.created_at
@@ -576,6 +564,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             id: id,
             title: title,
             state: issue_state,
+            story_ci: story_ci,
             workflow_state: workflow_state,
             workflow_issue_type: workflow_issue_type,
             project_id: project_id,
@@ -627,8 +616,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       let epicResponseUrl = `${this.apiUrl}/api/v4/groups/${groupId}/epics?per_page=100`;
       let groupEpics = await fetchAllPages(epicResponseUrl);
       for (const epic of groupEpics) {
-        
-        
+
+
         // find all the child issues of an epic, and create an array from the assignees
         let epic_labels = epic.labels
         let epic_state;
@@ -729,13 +718,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let id = epic.iid ? epic.iid : ""
         let title = epic.title ? epic.title : ""
 
-       // get an epics issues and create an array from the assignees
+        // get an epics issues and create an array from the assignees
         let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || []
         let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || []
         // ensure that the assignees array is unique
         epic_assignees = [...new Set(epic_assignees)]
         let strEpicAssignees = epic_assignees.join(", ")
-        
+
         let epicObj: EpicObjectType = {
           Time: created_at,
           id: id,
@@ -797,6 +786,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'id', type: FieldType.string },
         { name: 'title', type: FieldType.string },
         { name: 'state', type: FieldType.string },
+        { name: 'story_ci', type: FieldType.string },
         { name: 'workflow_state', type: FieldType.string },
         { name: 'type', type: FieldType.string },
         { name: 'workflow_issue_type', type: FieldType.string },
@@ -835,10 +825,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       for (const issue of data) {
         if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
           for (const assignee of issue['assignees']) {
-            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
           }
         } else {
-          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
         }
       }
     }
