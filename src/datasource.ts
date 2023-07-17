@@ -35,7 +35,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null, regexFilters} = options.targets[0];
+    const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null, regexFilters } = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
     let data = typeFilter === "issue" ? issues : epics;
     let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
@@ -141,11 +141,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             let { field, value } = filter;
             let regex = new RegExp(value as string);
             const rowValue = row[field] === null ? 'null' : row[field];
-    
+
             if (value === 'null') {
               return rowValue === null;
             }
-              return regex.test(rowValue)
+            return regex.test(rowValue)
           });
         }
 
@@ -495,7 +495,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let labels = issue.labels
           let workflow_issue_type;
           let workflow_state;
-          let story_ci; 
+          let story_ci;
 
           const issueTypeMatch = labels.some((string: string) => /IssueType/.test(string));
           const workflowMatch = labels.some((string: string) => /Workflow/.test(string));
@@ -512,8 +512,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           if (issueTypeMatch === false) {
             workflow_issue_type = 'Unassigned IssueType';
           } else if (issueTypeMatch === true) {
-            workflow_issue_type = labels.filter((label: string) => label.match(/Workflow::[A-Za-z0-9\s]+/))[0]
-            workflow_issue_type = workflow_issue_type.match(/Workflow::(.*)$/)[1]
+            workflow_issue_type = labels.filter((label: string) => label.match(/IssueType::[A-Za-z0-9\s]+/))[0]
+            workflow_issue_type = workflow_issue_type.match(/IssueType::(.*)$/)[1]
           }
 
           if (workflowMatch === false) {
@@ -522,7 +522,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             workflow_state = labels.filter((label: string) => label.match(/Workflow::[A-Za-z0-9\s]+/))[0]
             workflow_state = workflow_state.match(/Workflow::(.*)$/)[1]
           }
-          
+
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
           let created_month = createdDateData.monthName
@@ -616,8 +616,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       let epicResponseUrl = `${this.apiUrl}/api/v4/groups/${groupId}/epics?per_page=100`;
       let groupEpics = await fetchAllPages(epicResponseUrl);
       for (const epic of groupEpics) {
-        
-        
+
+
         // find all the child issues of an epic, and create an array from the assignees
         let epic_labels = epic.labels
         let epic_state;
@@ -718,13 +718,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let id = epic.iid ? epic.iid : ""
         let title = epic.title ? epic.title : ""
 
-       // get an epics issues and create an array from the assignees
+        // get an epics issues and create an array from the assignees
         let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || []
         let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || []
         // ensure that the assignees array is unique
         epic_assignees = [...new Set(epic_assignees)]
         let strEpicAssignees = epic_assignees.join(", ")
-        
+
         let epicObj: EpicObjectType = {
           Time: created_at,
           id: id,
