@@ -563,9 +563,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           const ciMatchT = labels.some((string: string) => /CI::[A-Za-z0-9\s]+::[A-Za-z0-9\s]+/.test(string));
           
           if (ciMatchT) {
-            const ciLabel = labels.find((label: string) => label.match(/CI::([A-Za-z0-9\s]+)::([A-Za-z0-9\s]+)/));
+            const ciLabel = labels.find((label: string) => label.match(/CI::([A-Za-z0-9\s]+)::[A-Za-z0-9\s]+/));
             if (ciLabel) {
-              story_ci_type = ciLabel.match(/CI::([A-Za-z0-9\s]+)::([A-Za-z0-9\s]+)/)[2];
+              const matchResult = ciLabel.match(/CI::([A-Za-z0-9\s]+)::([A-Za-z0-9\s]+)/);
+              if (matchResult) {
+                story_ci_type = matchResult[2];
+              } else {
+                story_ci_type = 'Unassigned CI';
+              }
             } else {
               story_ci_type = 'Unassigned CI';
             }
@@ -588,6 +593,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               .filter((label: string) => label.match(/Workflow::([A-Za-z0-9\s]+)/))[0]
               .match(/Workflow::([A-Za-z0-9\s]+)/)[1];
           }
+          
           
 
 
