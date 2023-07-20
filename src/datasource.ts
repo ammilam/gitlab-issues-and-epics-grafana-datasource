@@ -339,7 +339,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'epic_channel',
       'epic_rank',
       'epic_assignees',
-      'story_ci'
+      'story_ci',
+      'story_ci_type'
     ];
   }
 
@@ -415,6 +416,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         id: string,
         title: string,
         story_ci: string,
+        story_ci_type: string,
         state: string,
         workflow_state: string,
         workflow_issue_type: string,
@@ -522,6 +524,37 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             workflow_state = labels.filter((label: string) => label.match(/Workflow::[A-Za-z0-9\s]+/))[0]
             workflow_state = workflow_state.match(/Workflow::(.*)$/)[1]
           }
+          
+          let story_ci_type;
+
+          const issueTypeMatchT = labels.some((string: string) => /IssueType/.test(string));
+          const workflowMatchT = labels.some((string: string) => /Workflow/.test(string));
+
+          const ciMatchT = labels.some((string: string) => /CI::[A-Za-z0-9\s-]+::[A-Za-z0-9\s-]+/.test(string));
+
+          if (ciMatchT) {
+            story_ci_type = labels
+              .filter((label: string) => label.match(/CI::([A-Za-z0-9\s-]+)::[A-Za-z0-9\s-]+/))[0]
+              .match(/CI::([A-Za-z0-9\s-]+)::/)[1];
+          } else {
+            story_ci_type = 'Unassigned CI';
+          }
+
+          if (!issueTypeMatchT) {
+            workflow_issue_type = 'Unassigned IssueType';
+          } else {
+            workflow_issue_type = labels
+              .filter((label: string) => label.match(/IssueType::([A-Za-z0-9\s-]+)/))[0]
+              .match(/IssueType::([A-Za-z0-9\s-]+)/)[1];
+          }
+
+          if (!workflowMatchT) {
+            workflow_state = 'Unassigned State';
+          } else {
+            workflow_state = labels
+              .filter((label: string) => label.match(/Workflow::([A-Za-z0-9\s-]+)/))[0]
+              .match(/Workflow::([A-Za-z0-9\s-]+)/)[1];
+          }
 
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
@@ -565,6 +598,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             title: title,
             state: issue_state,
             story_ci: story_ci,
+            story_ci_type: story_ci_type,
             workflow_state: workflow_state,
             workflow_issue_type: workflow_issue_type,
             project_id: project_id,
@@ -787,6 +821,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'title', type: FieldType.string },
         { name: 'state', type: FieldType.string },
         { name: 'story_ci', type: FieldType.string },
+        { name: 'story_ci_type', type: FieldType.string },
         { name: 'workflow_state', type: FieldType.string },
         { name: 'type', type: FieldType.string },
         { name: 'workflow_issue_type', type: FieldType.string },
@@ -825,10 +860,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       for (const issue of data) {
         if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
           for (const assignee of issue['assignees']) {
-            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'],  issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
           }
         } else {
-          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
+          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['Value']]);
         }
       }
     }
