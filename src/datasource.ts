@@ -558,36 +558,37 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
           let story_ci_type = '';
 
-        const issueTypeMatchT = labels.some((string: string) => /IssueType/.test(string));
-        const workflowMatchT = labels.some((string: string) => /Workflow/.test(string));
-        const ciMatchT = labels.some((string: string) => /CI::[A-Za-z0-9\s]+::[A-Za-z0-9\s]+/.test(string));
-
-        if (ciMatchT) {
-          const ciLabel = labels.find((label: string) => label.match(/CI::([A-Za-z0-9\s]+)::[A-Za-z0-9\s]+/));
-          if (ciLabel) {
-            story_ci_type = ciLabel.match(/CI::([A-Za-z0-9\s]+)::[A-Za-z0-9\s]+/)[1];
+          const issueTypeMatchT = labels.some((string: string) => /IssueType/.test(string));
+          const workflowMatchT = labels.some((string: string) => /Workflow/.test(string));
+          const ciMatchT = labels.some((string: string) => /CI::[A-Za-z0-9\s]+::[A-Za-z0-9\s]+/.test(string));
+          
+          if (ciMatchT) {
+            const ciLabel = labels.find((label: string) => label.match(/CI::([A-Za-z0-9\s]+)::([A-Za-z0-9\s]+)/));
+            if (ciLabel) {
+              story_ci_type = ciLabel.match(/CI::([A-Za-z0-9\s]+)::([A-Za-z0-9\s]+)/)[2];
+            } else {
+              story_ci_type = 'Unassigned CI';
+            }
           } else {
             story_ci_type = 'Unassigned CI';
           }
-        } else {
-          story_ci_type = 'Unassigned CI';
-        }
-
-        if (!issueTypeMatchT) {
-          workflow_issue_type = 'Unassigned IssueType';
-        } else {
-          workflow_issue_type = labels
-            .filter((label: string) => label.match(/IssueType::([A-Za-z0-9\s]+)/))[0]
-            .match(/IssueType::([A-Za-z0-9\s]+)/)[1];
-        }
-
-        if (!workflowMatchT) {
-          workflow_state = 'Unassigned State';
-        } else {
-          workflow_state = labels
-            .filter((label: string) => label.match(/Workflow::([A-Za-z0-9\s]+)/))[0]
-            .match(/Workflow::([A-Za-z0-9\s]+)/)[1];
-        }
+          
+          if (!issueTypeMatchT) {
+            workflow_issue_type = 'Unassigned IssueType';
+          } else {
+            workflow_issue_type = labels
+              .filter((label: string) => label.match(/IssueType::([A-Za-z0-9\s]+)/))[0]
+              .match(/IssueType::([A-Za-z0-9\s]+)/)[1];
+          }
+          
+          if (!workflowMatchT) {
+            workflow_state = 'Unassigned State';
+          } else {
+            workflow_state = labels
+              .filter((label: string) => label.match(/Workflow::([A-Za-z0-9\s]+)/))[0]
+              .match(/Workflow::([A-Za-z0-9\s]+)/)[1];
+          }
+          
 
 
           let created_at = issue.created_at
