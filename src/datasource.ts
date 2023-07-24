@@ -334,6 +334,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'closed_at',
       'due_date',
       'due_date_month',
+      'due_date_month_number',
+      'due_date_year',
       'start_date',
       'epic_state',
       'epic_c3',
@@ -399,6 +401,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         end_date: Date,
         due_date: Date,
         due_date_month: string,
+        due_date_month_number: string,
+        due_date_year: string,
         description: string,
         group_id: string,
         epic_state: string,
@@ -750,6 +754,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let due_date = epic.due_date ? epic.due_date.split("T")[0] : ""
         let dueDateData = this.getDateInfo(new Date(due_date))
         let due_date_month = dueDateData.monthName
+        let due_date_month_number = String(dueDateData.monthNumber) || ""
+        let due_date_year = String(dueDateData.year) || ""
         let start_date = epic.start_date ? epic.start_date.split("T")[0] : ""
         let end_date = epic.end_date ? epic.end_date.split("T")[0] : ""
         let group_id = epic.group_id ? epic.group_id : ""
@@ -788,6 +794,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           end_date: end_date,
           due_date: due_date,
           due_date_month: due_date_month,
+          due_date_month_number: due_date_month_number,
+          due_date_year: due_date_year,
           description: epic.description,
           epic_c3: epic_c3,
           epic_channel: epic_channel,
@@ -885,6 +893,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'start_date', type: FieldType.time },
         { name: 'due_date', type: FieldType.time },
         { name: 'due_date_month', type: FieldType.string },
+        { name: 'due_date_month_number', type: FieldType.string },
+        { name: 'due_date_year', type: FieldType.string },
         { name: 'created_at', type: FieldType.time },
         { name: 'created_month', type: FieldType.string },
         { name: 'created_month_number', type: FieldType.string },
@@ -913,7 +923,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
