@@ -768,13 +768,23 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let id = epic.iid ? epic.iid : ""
         let title = epic.title ? epic.title : ""
 
-        // get an epics issues and create an array from the assignees
-        let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || []
-        let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || []
-        // ensure that the assignees array is unique
-        epic_assignees = [...new Set(epic_assignees)]
-        let strEpicAssignees = epic_assignees.join(", ")
-
+        function formatName(name: string): string {
+          const [firstName, lastName] = name.split(".");
+          const formattedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+          const formattedLastNameInitial = lastName.charAt(0).toUpperCase();
+          return `${formattedFirstName} ${formattedLastNameInitial}`;
+        }
+        
+        // Original code
+        let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || [];
+        let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || [];
+        // Ensure that the assignees array is unique
+        epic_assignees = [...new Set(epic_assignees)];
+        
+        // Format the assignee names
+        let formattedEpicAssignees = epic_assignees.map((assignee: string) => formatName(assignee));
+        let strEpicAssignees = formattedEpicAssignees.join(", ");
+        
 
       let openissues = findChildIssues.filter((issue) => issue.state === "opened").length.toString();
       let closedissues = findChildIssues.filter((issue) => issue.state === "closed").length.toString();
