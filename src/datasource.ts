@@ -347,7 +347,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'openissues',
       'closedissues',
       'totalissues',
-      'pctcomplete'
+      'pctcomplete',
+      'numAssignees'
     ];
   }
 
@@ -418,6 +419,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         closedissues: number,
         totalissues: number,
         pctcomplete: number, 
+        numAssignees: number,
         Value: number,
         [key: string]: any; // This is the index signature
       };
@@ -783,24 +785,20 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         // Ensure that the assignees array is unique
         epic_assignees = [...new Set(epic_assignees)];
         
+        // Calculate the number of assignees
+        let numAssignees = epic_assignees.length;
+
         // Format the assignee names
         let formattedEpicAssignees = epic_assignees.map((assignee: string) => formatName(assignee));
         let strEpicAssignees = formattedEpicAssignees.join(", ");
         
-
         // Calculate the number of open, closed, and total issues
-let openissues = findChildIssues.filter((issue) => issue.state === "opened").length;
-let closedissues = findChildIssues.filter((issue) => issue.state === "closed").length;
-let totalIssues = findChildIssues.length;
+        let openissues = findChildIssues.filter((issue) => issue.state === "opened").length;
+        let closedissues = findChildIssues.filter((issue) => issue.state === "closed").length;
+        let totalIssues = findChildIssues.length;
 
-// Calculate the percentage completion for the entire epic (as a number)
-let pctcomplete = (closedissues / totalIssues) * 100;
-
-// Convert pctcomplete and the other fields to strings
-// let pctcompleteString = pctcomplete.toFixed(0);
-// let openissuesString = openissues.toString();
-// let closedissuesString = closedissues.toString();
-// let totalIssuesString = totalIssues.toString();
+        // Calculate the percentage completion for the entire epic (as a number)
+        let pctcomplete = (closedissues / totalIssues) * 100;
 
         let epicObj: EpicObjectType = {
           Time: created_at,
@@ -838,6 +836,7 @@ let pctcomplete = (closedissues / totalIssues) * 100;
           closedissues: closedissues,
           totalissues: totalIssues,
           pctcomplete: pctcomplete,
+          numAssignees: numAssignees,
           Value: 1
         }
 
@@ -958,13 +957,14 @@ let pctcomplete = (closedissues / totalIssues) * 100;
         { name: 'closedissues', type: FieldType.number },
         { name: 'totalissues', type: FieldType.number },
         { name: 'pctcomplete', type: FieldType.number },
+        { name: 'numAssignees', type: FieldType.number},
         { name: 'Value', type: FieldType.number }
       ]
     });
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'],epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
