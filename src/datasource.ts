@@ -348,7 +348,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'closedissues',
       'totalissues',
       'pctcomplete',
-      'numAssignees'
+      'numAssignees',
+      'parent_channel'
     ];
   }
 
@@ -382,8 +383,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const projects = res['projects']
 
 
-      let epics = [];
-      type EpicObjectType = {
+
+      type ValueTypes = string | number | boolean | Date | string[]; // Add here any other type that might appear in your obj.
+      interface EpicObjectType {
         Time: Date,
         id: string,
         title: string,
@@ -423,10 +425,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         Value: number,
         [key: string]: any; // This is the index signature
       };
+      let epics: EpicObjectType[] = [];
       let epicFieldValuesDictionary: Record<string, ValueTypes[]> = {};
 
       let issues = [];
-      type ValueTypes = string | number | boolean | Date | string[]; // Add here any other type that might appear in your obj.
       type IssueObjectType = {
         Time: Date,
         id: string,
@@ -461,6 +463,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         created_month_number: string,
         created_year: string,
         due_date: Date,
+        parent_channel: string,
         epic_due_date: Date,
         epic_id: string,
         epic_title: string,
@@ -608,6 +611,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let type = "issue"
           let Value = 1
 
+          let parentEpic = epics.filter((epic) => epic.title === String(epic_title)) || {};
+          //alert(JSON.stringify(findParentEpic))
+          let parentLabels = parentEpic['labels']
+          parent_channel = [...new Set(parent_channel)];
+
           let issueObj: IssueObjectType = {
             Time: issue.created_at,
             id: id,
@@ -642,6 +650,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             created_month_number: created_month_number,
             created_year: created_year,
             due_date: due_date,
+            parent_channel: parent_channel,
             epic_due_date: epic_due_date,
             epic_id: epic_id,
             epic_title: epic_title,
@@ -782,9 +791,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         // Original code
         let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || [];
         let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || [];
+      
         // Ensure that the assignees array is unique
-        epic_assignees = [...new Set(epic_assignees)];
-        
+        epic_assignees = [...new Set(epic_assignees)]; 
+
         // Calculate the number of assignees
         let numAssignees = epic_assignees.length;
 
@@ -901,6 +911,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'epic_due_date', type: FieldType.string },
         { name: 'due_date', type: FieldType.string },
         { name: 'ticket_age', type: FieldType.string },
+        { name: 'parent_channel', type: FieldType.string },
         { name: 'Value', type: FieldType.number }
       ],
     });
