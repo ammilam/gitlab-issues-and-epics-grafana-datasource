@@ -566,7 +566,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             created_year: created_year,
             due_date: due_date,
             parent_channel: "",
-            c3score: c3score,
+            c3score: 0,
             epic_due_date: epic_due_date,
             epic_id: epic_id,
             epic_title: epic_title,
