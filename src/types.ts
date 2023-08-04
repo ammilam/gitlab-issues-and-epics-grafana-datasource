@@ -75,6 +75,7 @@ export type IssueObjectType = {
   created_year: string,
   due_date: Date,
   parent_channel: string,
+  c3score: number,
   epic_due_date: Date,
   epic_id: string,
   epic_title: string,
