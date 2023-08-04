@@ -782,23 +782,25 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
       // for issues, find the parent epic and its labels
       for (const issue of issues) {
+        let c3score: number
         let parentEpic = epics.find((epic) => epic.title === String(issue.epic_title));
         if (parentEpic) {
           issue['parent_channel'] = parentEpic['epic_channel']  
           
           switch (true) {
             case parentEpic['epic_channel'] === 'Enterprise Project':
-              issue['c3score'] = 6;
+              c3score = 6;
               break;
             case parentEpic['epic_channel'] === 'Internal CF Project':
-              issue['c3score'] = 3;
+              c3score = 3;
               break;
             case parentEpic['epic_channel'] === 'Non-Project Related':
-              issue['c3score'] = 1;
+              c3score = 1;
               break;
             default:
-              issue['c3score'] = 0;
+              c3score = 0;
           } 
+          issue['c3score'] = c3score
         }
       }
 
