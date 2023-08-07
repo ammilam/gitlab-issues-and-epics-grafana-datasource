@@ -350,7 +350,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'pctcomplete',
       'numAssignees',
       'parent_channel',
-      'c3score'
+      'c3score',
+      'weight'
     ];
   }
 
@@ -494,7 +495,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               .filter((label: string) => label.match(/Workflow::([A-Za-z0-9\s-]+)/))[0]
               .match(/Workflow::([A-Za-z0-9\s-]+)/)[1];
           }
-
+          let weight = issue.weight ? issue.weight : ""
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
           let created_month = createdDateData.monthName
@@ -567,6 +568,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             due_date: due_date,
             parent_channel: "",
             c3score: 0,
+            weight: weight,
             epic_due_date: epic_due_date,
             epic_id: epic_id,
             epic_title: epic_title,
@@ -851,6 +853,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'ticket_age', type: FieldType.string },
         { name: 'parent_channel', type: FieldType.string },
         { name: 'c3score', type: FieldType.number },
+        { name: 'weight', type: FieldType.number },
         { name: 'Value', type: FieldType.number }
       ],
     });
@@ -859,10 +862,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       for (const issue of data) {
         if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
           for (const assignee of issue['assignees']) {
-            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'],  issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['parent_channel'], issue['c3score'], issue['Value']]);
+            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'],  issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
           }
         } else {
-          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['parent_channel'], issue['c3score'], issue['Value']]);
+          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
         }
       }
     }
