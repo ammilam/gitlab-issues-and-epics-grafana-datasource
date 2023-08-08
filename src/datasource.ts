@@ -52,12 +52,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       });
     }
 
-    if (filters) {
-      interpolatedFilters = filters.map(filter => {
-        const interpolatedValue = getTemplateSrv().replace(filter.value, options.scopedVars);
-        return { ...filter, value: interpolatedValue };
-      });
-    }
+    // if (filters) {
+    //   interpolatedFilters = filters.map(filter => {
+    //     const interpolatedValue = getTemplateSrv().replace(filter.value, options.scopedVars);
+    //     return { ...filter, value: interpolatedValue };
+    //   });
+    // }
 
     // Apply the type filter
     if (typeFilter) {
