@@ -44,6 +44,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
     let filteredDataFrames = initialDataFrames;
     let interpolatedFilters = filters;
+    
     // get variable values and replace them in the filters
     if (regexFilters) {
       interpolatedFilters = regexFilters.map(filter => {
@@ -542,7 +543,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let closed_by = issue.closed_by.username ? issue.closed_by.username : ""
           let milestone = issue.milestone ? issue.milestone : ""
           let description = issue.description ? issue.description : ""
-          let author = issue.author.username ? issue.author.username : ""
+          let author = issue.author.username ? issue.author.name : ""
           let id = issue.iid ? issue.iid : ""
           let title = issue.title ? issue.title : ""
           let issue_state = issue.state ? issue.state : ""
