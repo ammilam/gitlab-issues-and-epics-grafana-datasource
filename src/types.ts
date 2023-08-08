@@ -25,6 +25,7 @@ export interface MyQuery extends DataQuery {
   filters?: Filter[]
   field?: string;
   regexFilters?: Filter[];
+  rawQuery?: string;
 }
 
 /**
