@@ -554,14 +554,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let epic_title = issue.epic.title ? issue.epic.title : "No Epic Assigned"
           let epic_url = issue.epic.url ? issue.epic.url : ""
           let ticket_age = !closed_at ? this.getDiffInDays(new Date(created_at), new Date()) : this.getDiffInDays(new Date(created_at), new Date(closed_at))
-          let assignee_stage = issue.assignee.username ? issue.assignee.name : ""
+          let assignee_stage = issue.assignee.name ? issue.assignee.name : ""
           let assignee = formatName(assignee_stage)
           let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.name) : []
-          let closed_by_stage = issue.closed_by.username ? issue.closed_by.username : ""
+          let closed_by_stage = issue.closed_by.name ? issue.closed_by.name : ""
           let closed_by = formatName(closed_by_stage)
           let milestone = issue.milestone ? issue.milestone : ""
           let description = issue.description ? issue.description : ""
-          let author_stage = issue.author.username ? issue.author.name : ""
+          let author_stage = issue.author.name ? issue.author.name : ""
           let author = formatName(author_stage)
           let id = issue.iid ? issue.iid : ""
           let title = issue.title ? issue.title : ""
