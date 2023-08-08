@@ -1,5 +1,7 @@
 import { FieldType, MutableDataFrame, DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings } from '@grafana/data';
 import { MyDataSourceOptions, MyQuery, EpicObjectType, IssueObjectType } from './types';
+import { getTemplateSrv } from '@grafana/runtime';
+
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   apiUrl: string;
@@ -35,11 +37,29 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
+
     const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null, regexFilters } = options.targets[0];
     const { issues, epics } = await this.getIssuesAndEpics(this.groupId);
     let data = typeFilter === "issue" ? issues : epics;
     let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
     let filteredDataFrames = initialDataFrames;
+    let interpolatedFilters = filters;
+    
+    // get variable values and replace them in the filters
+    if (regexFilters) {
+      interpolatedFilters = regexFilters.map(filter => {
+        const interpolatedValue = getTemplateSrv().replace(filter.value, options.scopedVars);
+        return { ...filter, value: interpolatedValue };
+      });
+    }
+
+    // if (filters) {
+    //   interpolatedFilters = filters.map(filter => {
+    //     const interpolatedValue = getTemplateSrv().replace(filter.value, options.scopedVars);
+    //     return { ...filter, value: interpolatedValue };
+    //   });
+    // }
+
     // Apply the type filter
     if (typeFilter) {
       filteredDataFrames = this.applyTypeFilter(typeFilter, filteredDataFrames);
@@ -47,7 +67,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     // Apply the date filter
     filteredDataFrames = this.applyDateFilter(createdAfter, createdBefore, updatedAfter, updatedBefore, closedAfter, closedBefore, filteredDataFrames);
-
     // Pass the filters array when calling applyGroupByAndAggregate
     if (groupBy && aggregateFunction) {
       filteredDataFrames = this.applyGroupByAndAggregate(
@@ -62,13 +81,15 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         filteredDataFrames,
         filters || [],
         typeFilter || "",
-        regexFilters || []
+        interpolatedFilters || [],
       );
     }
 
     const response = { data: filteredDataFrames };
+
     return response;
   }
+
 
   applyTypeFilter(
     typeFilter: string,
@@ -387,7 +408,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
 
       type ValueTypes = string | number | boolean | Date | string[]; // Add here any other type that might appear in your obj.
-      
+
       let epics: EpicObjectType[] = [];
       let epicFieldValuesDictionary: Record<string, ValueTypes[]> = {};
 
@@ -464,7 +485,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             workflow_state = labels.filter((label: string) => label.match(/Workflow::[A-Za-z0-9\s]+/))[0]
             workflow_state = workflow_state.match(/Workflow::(.*)$/)[1]
           }
-          
+
           let story_ci_type;
 
           const issueTypeMatchT = labels.some((string: string) => /IssueType/.test(string));
@@ -522,7 +543,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let closed_by = issue.closed_by.username ? issue.closed_by.username : ""
           let milestone = issue.milestone ? issue.milestone : ""
           let description = issue.description ? issue.description : ""
-          let author = issue.author.username ? issue.author.username : ""
+          let author = issue.author.username ? issue.author.name : ""
           let id = issue.iid ? issue.iid : ""
           let title = issue.title ? issue.title : ""
           let issue_state = issue.state ? issue.state : ""
@@ -705,13 +726,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           const formattedLastNameInitial = lastName.charAt(0).toUpperCase();
           return `${formattedFirstName} ${formattedLastNameInitial}`;
         }
-        
+
         // Original code
         let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || [];
         let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || [];
-      
+
         // Ensure that the assignees array is unique
-        epic_assignees = [...new Set(epic_assignees)]; 
+        epic_assignees = [...new Set(epic_assignees)];
 
         // Calculate the number of assignees
         let numAssignees = epic_assignees.length;
@@ -719,7 +740,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         // Format the assignee names
         let formattedEpicAssignees = epic_assignees.map((assignee: string) => formatName(assignee));
         let strEpicAssignees = formattedEpicAssignees.join(", ");
-        
+
         // Calculate the number of open, closed, and total issues
         let openissues = findChildIssues.filter((issue) => issue.state === "opened").length;
         let closedissues = findChildIssues.filter((issue) => issue.state === "closed").length;
@@ -786,8 +807,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       for (const issue of issues) {
         let parentEpic = epics.find((epic) => epic.title === String(issue.epic_title));
         if (parentEpic) {
-          issue['parent_channel'] = parentEpic['epic_channel']  
-          
+          issue['parent_channel'] = parentEpic['epic_channel']
+
           switch (true) {
             case parentEpic['epic_channel'] === 'Enterprise Project':
               issue['c3score'] = 6;
@@ -800,7 +821,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               break;
             default:
               issue['c3score'] = 0;
-          } 
+          }
         }
       }
 
@@ -910,7 +931,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'closedissues', type: FieldType.number },
         { name: 'totalissues', type: FieldType.number },
         { name: 'pctcomplete', type: FieldType.number },
-        { name: 'numAssignees', type: FieldType.number},
+        { name: 'numAssignees', type: FieldType.number },
         { name: 'Value', type: FieldType.number }
       ]
     });
