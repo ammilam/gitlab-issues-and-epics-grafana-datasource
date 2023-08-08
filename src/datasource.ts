@@ -516,6 +516,22 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               .filter((label: string) => label.match(/Workflow::([A-Za-z0-9\s-]+)/))[0]
               .match(/Workflow::([A-Za-z0-9\s-]+)/)[1];
           }
+
+          function formatName(name: string): string {
+            if (name) {
+                const nameParts = name.split(".");
+                
+                if (nameParts.length === 2) {
+                    const [firstName, lastName] = nameParts;
+                    const formattedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+                    const formattedLastNameInitial = lastName.charAt(0).toUpperCase();
+                    return `${formattedFirstName} ${formattedLastNameInitial}`;
+                }
+            }
+            
+            return name; // Return the original name if it's undefined or doesn't match the expected format
+        }
+
           let weight = issue.weight ? issue.weight : ""
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
@@ -538,12 +554,15 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let epic_title = issue.epic.title ? issue.epic.title : "No Epic Assigned"
           let epic_url = issue.epic.url ? issue.epic.url : ""
           let ticket_age = !closed_at ? this.getDiffInDays(new Date(created_at), new Date()) : this.getDiffInDays(new Date(created_at), new Date(closed_at))
-          let assignee = issue.assignee.username ? issue.assignee.name : ""
+          let assignee_stage = issue.assignee.username ? issue.assignee.name : ""
+          let assignee = formatName(assignee_stage)
           let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.name) : []
-          let closed_by = issue.closed_by.username ? issue.closed_by.username : ""
+          let closed_by_stage = issue.closed_by.username ? issue.closed_by.username : ""
+          let closed_by = formatName(closed_by_stage)
           let milestone = issue.milestone ? issue.milestone : ""
           let description = issue.description ? issue.description : ""
-          let author = issue.author.username ? issue.author.name : ""
+          let author_stage = issue.author.username ? issue.author.name : ""
+          let author = formatName(author_stage)
           let id = issue.iid ? issue.iid : ""
           let title = issue.title ? issue.title : ""
           let issue_state = issue.state ? issue.state : ""
