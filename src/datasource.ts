@@ -363,6 +363,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'epic_channel',
       'epic_rank',
       'epic_assignees',
+      'most_common_epic_assignee_filter',
       'story_ci',
       'story_ci_type',
       'openissues',
@@ -390,6 +391,47 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     let obj = { monthName, monthNumber, year }
     return obj
   };
+
+  findMostCommonElement(arr: any[]): any | undefined {
+    const frequencyMap: Map<any, number> = new Map();
+
+    // Count the occurrences of each element
+    for (const item of arr) {
+      if (frequencyMap.has(item)) {
+        frequencyMap.set(item, frequencyMap.get(item)! + 1);
+      } else {
+        frequencyMap.set(item, 1);
+      }
+    }
+
+    let mostCommonElement: any | undefined;
+    let highestFrequency = 0;
+
+    // Find the element with the highest frequency
+    frequencyMap.forEach((frequency, item) => {
+      if (frequency > highestFrequency) {
+        mostCommonElement = item;
+        highestFrequency = frequency;
+      }
+    });
+
+    return mostCommonElement;
+  }
+
+  formatName(name: string): string {
+    if (name) {
+        const nameParts = name.split(".");
+        
+        if (nameParts.length === 2) {
+            const [firstName, lastName] = nameParts;
+            const formattedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+            const formattedLastNameInitial = lastName.charAt(0).toUpperCase();
+            return `${formattedFirstName} ${formattedLastNameInitial}`;
+        }
+    }
+    
+    return name; // Return the original name if it's undefined or doesn't match the expected format
+}
 
 
   // Get all issues and epics for a group
@@ -517,21 +559,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               .match(/Workflow::([A-Za-z0-9\s-]+)/)[1];
           }
 
-          function formatName(name: string): string {
-            if (name) {
-                const nameParts = name.split(".");
-                
-                if (nameParts.length === 2) {
-                    const [firstName, lastName] = nameParts;
-                    const formattedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-                    const formattedLastNameInitial = lastName.charAt(0).toUpperCase();
-                    return `${formattedFirstName} ${formattedLastNameInitial}`;
-                }
-            }
-            
-            return name; // Return the original name if it's undefined or doesn't match the expected format
-        }
-
           let weight = issue.weight ? issue.weight : ""
           let created_at = issue.created_at
           let createdDateData = this.getDateInfo(new Date(created_at))
@@ -555,14 +582,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let epic_url = issue.epic.url ? issue.epic.url : ""
           let ticket_age = !closed_at ? this.getDiffInDays(new Date(created_at), new Date()) : this.getDiffInDays(new Date(created_at), new Date(closed_at))
           let assignee_stage = issue.assignee.name ? issue.assignee.name : ""
-          let assignee = formatName(assignee_stage)
+          let assignee = this.formatName(assignee_stage)
           let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.name) : []
           let closed_by_stage = issue.closed_by.name ? issue.closed_by.name : ""
-          let closed_by = formatName(closed_by_stage)
+          let closed_by = this.formatName(closed_by_stage)
           let milestone = issue.milestone ? issue.milestone : ""
           let description = issue.description ? issue.description : ""
           let author_stage = issue.author.name ? issue.author.name : ""
-          let author = formatName(author_stage)
+          let author = this.formatName(author_stage)
           let id = issue.iid ? issue.iid : ""
           let title = issue.title ? issue.title : ""
           let issue_state = issue.state ? issue.state : ""
@@ -739,17 +766,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let id = epic.iid ? epic.iid : ""
         let title = epic.title ? epic.title : ""
 
-        function formatName(name: string): string {
-          const [firstName, lastName] = name.split(".");
-          const formattedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-          const formattedLastNameInitial = lastName.charAt(0).toUpperCase();
-          return `${formattedFirstName} ${formattedLastNameInitial}`;
-        }
-
         // Original code
         let findChildIssues = issues.filter((issue) => issue.epic_title === String(title)) || [];
         let epic_assignees = findChildIssues.map((issue) => issue.assignees).flat(1) || [];
+        let most_common_epic_assignee_filter = this.findMostCommonElement(epic_assignees);
+        most_common_epic_assignee_filter = this.formatName(most_common_epic_assignee_filter);
 
+        // find which assignees show up in the epic_assignees the most
         // Ensure that the assignees array is unique
         epic_assignees = [...new Set(epic_assignees)];
 
@@ -757,7 +780,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         let numAssignees = epic_assignees.length;
 
         // Format the assignee names
-        let formattedEpicAssignees = epic_assignees.map((assignee: string) => formatName(assignee));
+        let formattedEpicAssignees = epic_assignees.map((assignee: string) => this.formatName(assignee));
         let strEpicAssignees = formattedEpicAssignees.join(", ");
 
         // Calculate the number of open, closed, and total issues
@@ -800,6 +823,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           epic_channel: epic_channel,
           epic_rank: epic_rank,
           epic_assignees: strEpicAssignees,
+          most_common_epic_assignee_filter: most_common_epic_assignee_filter,
           openissues: openissues,
           closedissues: closedissues,
           totalissues: totalIssues,
@@ -902,7 +926,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       for (const issue of data) {
         if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
           for (const assignee of issue['assignees']) {
-            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'],  issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], assignee, issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
+            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], this.formatName(assignee), issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
           }
         } else {
           issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
@@ -945,7 +969,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         { name: 'epic_c3', type: FieldType.string },
         { name: 'epic_channel', type: FieldType.string },
         { name: 'epic_rank', type: FieldType.string },
-        { name: 'epic_assignees', type: FieldType.string },
+        { name: 'epic_assignees', type: FieldType.other },
+        { name: 'most_common_epic_assignee_filter', type: FieldType.string },
         { name: 'openissues', type: FieldType.number },
         { name: 'closedissues', type: FieldType.number },
         { name: 'totalissues', type: FieldType.number },
@@ -957,7 +982,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['most_common_epic_assignee_filter'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
