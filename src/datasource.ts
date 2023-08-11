@@ -685,6 +685,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           case epic_labels.includes('Epic Stage::Ready for Prod'):
             epic_state = 'Ready for Prod';
             break;
+          case epic_labels.includes('Epic Stage::Blocked'):
+            epic_state = 'Blocked';
+            break;  
           case epic_labels.includes('Epic Stage::Requirement Gathering'):
             epic_state = 'Requirement Gathering';
             break;
