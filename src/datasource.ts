@@ -586,7 +586,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.name) : []
           let closed_by_stage = issue.closed_by.name ? issue.closed_by.name : ""
           let closed_by = this.formatName(closed_by_stage)
-          let milestone = issue.milestone ? issue.milestone : ""
+          let milestone = issue.milestone ? issue.milestone.title : ""
           let description = issue.description ? issue.description : ""
           let author_stage = issue.author.name ? issue.author.name : ""
           let author = this.formatName(author_stage)
