@@ -931,7 +931,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     if (typeFilter === "issue") {
       for (const issue of data) {
-        if (groupBy && groupBy.length > 0 && groupBy.includes("assignee")) {
+        if (groupBy && groupBy.length > 0 && groupBy.includes("assignee") && issue.assignees && issue.assignees.length > 0) {
           for (const assignee of issue['assignees']) {
             issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['description'], issue['author'], this.formatName(assignee), issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['updated_days'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
           }
