@@ -586,7 +586,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let epic_url = issue.epic.url ? issue.epic.url : ""
           let ticket_age = !closed_at ? this.getDiffInDays(new Date(created_at), new Date()) : this.getDiffInDays(new Date(created_at), new Date(closed_at))
           let updated_days = this.getDiffInDays(new Date(updated_at), new Date())
-          let daysLeftInSprint: number = 0; // Initialize to 0 by default
+          let daysLeftInSprint = 0; 
           let assignee_stage = issue.assignee.name ? issue.assignee.name : ""
           let assignee = this.formatName(assignee_stage)
           let assignees = issue.assignees ? issue.assignees.map((assignee: any) => assignee.name) : []
