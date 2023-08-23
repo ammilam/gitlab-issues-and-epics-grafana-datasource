@@ -612,10 +612,10 @@ const regex = /(\d{1,2})\.(\d{1,2}) - (\d{1,2})\.(\d{1,2})/;
 const matches = milestone.match(regex);
 
 if (matches && matches.length === 5) {
-    const startDateMonth = parseInt(matches[1]);
-    const startDateDay = parseInt(matches[2]);
-    const endDateMonth = parseInt(matches[3]);
-    const endDateDay = parseInt(matches[4]);
+    const startDateMonth = parseInt(String(matches[1]));
+    const startDateDay = parseInt(String(matches[2]));
+    const endDateMonth = parseInt(String(matches[3]));
+    const endDateDay = parseInt(String(matches[4]));
 
     // Calculate the start and end dates
     sprintStartDate = new Date(new Date().getFullYear(), startDateMonth - 1, startDateDay);
