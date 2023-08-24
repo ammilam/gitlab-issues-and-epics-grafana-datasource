@@ -377,7 +377,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'weight',
       'sprintStartDate',
       'sprintEndDate',
-      'daysLeftInSprint'
+      'daysLeftInSprint',
+      //O&I Metrics
+      'epic_category',
+      'epic_priority',
+      'epic_pillar'
     ];
   }
 
@@ -775,6 +779,40 @@ if (matches && matches.length === 5) {
           default:
             epic_rank = 'Not Ranked';
         }
+        
+        //O&I Metrics
+        let labels = epic.labels
+        let epic_category;
+        let epic_priority;
+        let epic_pillar;
+
+        const categoryMatchT = labels.some((string: string) => /Category/.test(string));
+        const priorityMatchT = labels.some((string: string) => /Priority/.test(string));
+        const pillarMatchT = labels.some((string: string) => /Pillar/.test(string));
+
+        if (!categoryMatchT) {
+          epic_category = 'Unassigned Category';
+        } else {
+          epic_category = labels
+            .filter((label: string) => label.match(/Category::([A-Za-z0-9\s-]+)/))[0]
+            .match(/Category::([A-Za-z0-9\s-]+)/)[1];
+        }
+
+        if (!priorityMatchT) {
+          epic_priority = 'Not Prioritized';
+        } else {
+          epic_priority = labels
+            .filter((label: string) => label.match(/Priority::([A-Za-z0-9\s-]+)/))[0]
+            .match(/Priority::([A-Za-z0-9\s-]+)/)[1];
+        }
+
+        if (!pillarMatchT) {
+          epic_pillar = 'No Pillar';
+        } else {
+          epic_pillar = labels
+            .filter((label: string) => label.match(/Pillar::([A-Za-z0-9\s-]+)/))[0]
+            .match(/Pillar::([A-Za-z0-9\s-]+)/)[1];
+        }
 
         let created_at = epic.created_at
         let createdDateData = this.getDateInfo(new Date(created_at))
@@ -865,6 +903,10 @@ if (matches && matches.length === 5) {
           totalissues: totalIssues,
           pctcomplete: pctcomplete,
           numAssignees: numAssignees,
+          //O&I Metrics
+          epic_category: epic_category,
+          epic_priority: epic_priority,
+          epic_pillar: epic_pillar,
           Value: 1
         }
 
@@ -1016,13 +1058,17 @@ if (matches && matches.length === 5) {
         { name: 'totalissues', type: FieldType.number },
         { name: 'pctcomplete', type: FieldType.number },
         { name: 'numAssignees', type: FieldType.number },
+        //O&I Metrics
+        { name: 'epic_category', type: FieldType.string },
+        { name: 'epic_priority', type: FieldType.string },
+        { name: 'epic_pillar', type: FieldType.string },
         { name: 'Value', type: FieldType.number }
       ]
     });
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['most_common_epic_assignee_filter'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['most_common_epic_assignee_filter'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['epic_category'], epic['epic_priority'], epic['epic_pillar'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
