@@ -355,6 +355,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'closed_year',
       'closed_at',
       'due_date',
+      'due_date_threshold',
       'due_date_month',
       'due_date_month_number',
       'due_date_year',
@@ -391,12 +392,23 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return String(res)
   }
 
-  getDateInfo = (date: Date): { monthName: string, monthNumber: number, year: number } => {
+  getDateInfo = (date: Date): { monthName: string, monthNumber: number, year: number, dateThreshold: string } => {
     const monthNumberInYear = date.getMonth();
     const year = date.getFullYear();
     const monthNumber = monthNumberInYear + 1;
     const monthName = date.toLocaleString('default', { month: 'long' });
-    let obj = { monthName, monthNumber, year }
+    
+    // compare the current month with the month of the date, if the date is in the past return "1:Month Name" else return "0:Month Name"
+    let dateThreshold: string;
+    // if the month number of the date is less than the current month number, return "1:Month Name"
+    if (monthNumberInYear < new Date().getMonth()) {
+      dateThreshold = "1:" + monthName
+    } else {
+      // if the month number of the date is greater than the current month number, return "0:Month Name"
+      dateThreshold = "0:" + monthName
+    }
+    // return an object with the month name, month number and year
+    let obj = { monthName, monthNumber, year, dateThreshold }
     return obj
   };
 
@@ -584,6 +596,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let closed_month_number = issue.closed_at ? String(closedDateData.monthNumber) : ""
           let closed_year = issue.closed_at ? String(closedDateData.year) : ""
           let due_date = issue.due_date ? issue.due_date.split("T")[0] : ""
+          let dueDateData = this.getDateInfo(new Date(due_date))
+          let due_date_threshold = dueDateData.dateThreshold
           let epic_due_date = issue.epic.human_readable_end_date ? issue.epic.human_readable_end_date.split("T")[0] : ""
           let epic_id = issue.epic.iid ? issue.epic.iid : ""
           let epic_title = issue.epic.title ? issue.epic.title : "No Epic Assigned"
@@ -670,6 +684,7 @@ if (matches && matches.length === 5) {
             created_month_number: created_month_number,
             created_year: created_year,
             due_date: due_date,
+            due_date_threshold: due_date_threshold,
             parent_channel: "",
             c3score: 0,
             weight: weight,
@@ -831,6 +846,7 @@ if (matches && matches.length === 5) {
         let closed_year = epic.closed_at ? String(closedDateData.year) : ""
         let due_date = epic.due_date ? epic.due_date.split("T")[0] : ""
         let dueDateData = this.getDateInfo(new Date(due_date))
+        let due_date_threshold = dueDateData.dateThreshold
         let due_date_month = dueDateData.monthName
         let due_date_month_number = String(dueDateData.monthNumber) || ""
         let due_date_year = String(dueDateData.year) || ""
@@ -889,6 +905,7 @@ if (matches && matches.length === 5) {
           start_date: start_date,
           end_date: end_date,
           due_date: due_date,
+          due_date_threshold: due_date_threshold,
           due_date_month: due_date_month,
           due_date_month_number: due_date_month_number,
           due_date_year: due_date_year,
@@ -1027,6 +1044,7 @@ if (matches && matches.length === 5) {
         { name: 'group_id', type: FieldType.string },
         { name: 'start_date', type: FieldType.time },
         { name: 'due_date', type: FieldType.time },
+        { name: 'due_date_threshold', type: FieldType.string },
         { name: 'due_date_month', type: FieldType.string },
         { name: 'due_date_month_number', type: FieldType.string },
         { name: 'due_date_year', type: FieldType.string },
@@ -1068,7 +1086,7 @@ if (matches && matches.length === 5) {
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['most_common_epic_assignee_filter'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['epic_category'], epic['epic_priority'], epic['epic_pillar'], epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_threshold'], epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['most_common_epic_assignee_filter'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['epic_category'], epic['epic_priority'], epic['epic_pillar'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
