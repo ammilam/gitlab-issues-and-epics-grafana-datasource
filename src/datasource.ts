@@ -360,6 +360,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'due_date_month_number',
       'due_date_year',
       'start_date',
+      'start_month',
       'epic_state',
       'epic_c3',
       'epic_channel',
@@ -847,10 +848,12 @@ if (matches && matches.length === 5) {
         let due_date = epic.due_date ? epic.due_date.split("T")[0] : ""
         let dueDateData = this.getDateInfo(new Date(due_date))
         let due_date_threshold = dueDateData.dateThreshold
-        let due_date_month = dueDateData.monthName
+        let due_date_month = due_date ? dueDateData.monthName : "TBD"
         let due_date_month_number = String(dueDateData.monthNumber) || ""
         let due_date_year = String(dueDateData.year) || ""
         let start_date = epic.start_date ? epic.start_date.split("T")[0] : ""
+        let start_month_data = this.getDateInfo(new Date(start_date))
+        let start_month = start_date ? start_month_data.monthName : "TBD"
         let end_date = epic.end_date ? epic.end_date.split("T")[0] : ""
         let group_id = epic.group_id ? epic.group_id : ""
         let id = epic.iid ? epic.iid : ""
@@ -903,6 +906,7 @@ if (matches && matches.length === 5) {
           closed_year: closed_year,
           closed_by: epic.closed_by,
           start_date: start_date,
+          start_month: start_month,
           end_date: end_date,
           due_date: due_date,
           due_date_threshold: due_date_threshold,
@@ -1043,6 +1047,7 @@ if (matches && matches.length === 5) {
         { name: 'type', type: FieldType.string },
         { name: 'group_id', type: FieldType.string },
         { name: 'start_date', type: FieldType.time },
+        { name: 'start_month', type: FieldType.string },
         { name: 'due_date', type: FieldType.time },
         { name: 'due_date_threshold', type: FieldType.string },
         { name: 'due_date_month', type: FieldType.string },
@@ -1086,7 +1091,7 @@ if (matches && matches.length === 5) {
 
     if (typeFilter === "epic") {
       for (const epic of data) {
-        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), new Date(epic['due_date']), epic['due_date_threshold'], epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['most_common_epic_assignee_filter'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['epic_category'], epic['epic_priority'], epic['epic_pillar'], epic['Value']]);
+        epicFrame.appendRow([new Date(epic['Time']), epic['id'], epic['title'], epic['state'], epic['type'], epic['group_id'], new Date(epic['start_date']), epic['start_month'], new Date(epic['due_date']), epic['due_date_threshold'], epic['due_date_month'], epic['due_date_month_number'], epic['due_date_year'], epic['created_at'], epic['created_month'], epic['created_month_number'], epic['created_year'], epic['updated_at'], epic['updated_month'], epic['updated_month_number'], epic['updated_year'], epic['closed_at'], epic['closed_month'], epic['closed_month_number'], epic['closed_year'], epic['closed_by'], epic['description'], epic['author'], epic['assignee'], epic['labels'], epic['epic_state'], epic['epic_c3'], epic['epic_channel'], epic['epic_rank'], epic['epic_assignees'], epic['most_common_epic_assignee_filter'], epic['openissues'], epic['closedissues'], epic['totalissues'], epic['pctcomplete'], epic['numAssignees'], epic['epic_category'], epic['epic_priority'], epic['epic_pillar'], epic['Value']]);
       }
     }
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
