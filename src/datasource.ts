@@ -330,6 +330,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       'project_id',
       'closed_by',
       'milestone',
+      'iteration_start_date',
+      'iteration_due_date',
+      'iteration_name',
       'description',
       'author',
       'assignee',
@@ -576,9 +579,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             workflow_state = labels
               .filter((label: string) => label.match(/Workflow::([A-Za-z0-9\s-]+)/))[0]
               .match(/Workflow::([A-Za-z0-9\s-]+)/)[1];
-          }
-
-          
+          }         
 
           let weight = issue.weight ? issue.weight : ""
           let created_at = issue.created_at
@@ -612,6 +613,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           let closed_by_stage = issue.closed_by.name ? issue.closed_by.name : ""
           let closed_by = this.formatName(closed_by_stage)
           let milestone = issue.milestone ? issue.milestone.title : ""
+          let iteration_start_date = issue.hasOwnProperty('iteration') && issue.iteration !== null ? issue.iteration.start_date : ""
+          let iteration_due_date = issue.hasOwnProperty('iteration') && issue.iteration !== null ? issue.iteration.due_date : ""
+          let iteration_name = issue.hasOwnProperty('iteration') && issue.iteration !== null ? `${iteration_start_date} - ${iteration_due_date}` : ""
           let sprintStartDate: Date | null = null;
           let sprintEndDate: Date | null = null;
           let description = issue.description ? issue.description : ""
@@ -661,6 +665,9 @@ if (matches && matches.length === 5) {
             assignees: assignees,
             closed_by: closed_by,
             milestone: milestone,
+            iteration_start_date: iteration_start_date,
+            iteration_due_date: iteration_due_date,
+            iteration_name: iteration_name,
             sprintStartDate: sprintStartDate,
             sprintEndDate: sprintEndDate,
             description: description,
@@ -1002,6 +1009,9 @@ if (matches && matches.length === 5) {
         { name: 'closed_year', type: FieldType.string },
         { name: 'closed_by', type: FieldType.string },
         { name: 'milestone', type: FieldType.string },
+        { name: 'iteration_start_date', type: FieldType.string },
+        { name: 'iteration_due_date', type: FieldType.string },
+        { name: 'iteration_name', type: FieldType.string },
         { name: 'sprintStartDate', type: FieldType.string},
         { name: 'sprintEndDate', type: FieldType.string},
         { name: 'daysLeftInSprint', type: FieldType.string},
@@ -1029,10 +1039,10 @@ if (matches && matches.length === 5) {
       for (const issue of data) {
         if (groupBy && groupBy.length > 0 && groupBy.includes("assignee") && issue.assignees && issue.assignees.length > 0) {
           for (const assignee of issue['assignees']) {
-            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['sprintStartDate'], issue['sprintEndDate'], issue['daysLeftInSprint'], issue['description'], issue['author'], this.formatName(assignee), issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['updated_days'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
+            issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['iteration_start_date'], issue['iteration_due_date'], issue['iteration_name'], issue['sprintStartDate'], issue['sprintEndDate'], issue['daysLeftInSprint'], issue['description'], issue['author'], this.formatName(assignee), issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['updated_days'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
           }
         } else {
-          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['sprintStartDate'], issue['sprintEndDate'], issue['daysLeftInSprint'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['updated_days'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
+          issueFrame.appendRow([issue['Time'], issue['id'], issue['title'], issue['state'], issue['story_ci'], issue['story_ci_type'], issue['workflow_state'], issue['type'], issue['workflow_issue_type'], issue['project_id'], issue['created_at'], issue['created_month'], issue['created_month_number'], issue['created_year'], issue['updated_at'], issue['updated_month'], issue['updated_month_number'], issue['updated_year'], issue['closed_at'], issue['closed_month'], issue['closed_month_number'], issue['closed_year'], issue['closed_by'], issue['milestone'], issue['iteration_start_date'], issue['iteration_due_date'], issue['iteration_name'], issue['sprintStartDate'], issue['sprintEndDate'], issue['daysLeftInSprint'], issue['description'], issue['author'], issue['assignee'], issue['labels'], issue['time_estimate'], issue['time_spent'], issue['epic_id'], issue['epic_title'], issue['epic_url'], issue['epic_due_date'], issue['due_date'], issue['ticket_age'], issue['updated_days'], issue['parent_channel'], issue['c3score'], issue['weight'], issue['Value']]);
         }
       }
     }

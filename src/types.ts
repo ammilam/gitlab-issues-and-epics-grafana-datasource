@@ -55,6 +55,8 @@ export type IssueObjectType = {
   assignees: string[],
   closed_by: string,
   milestone: string,
+  iteration_start_date: Date,
+  iteration_due_date: Date,
   description: string,
   time_estimate: string,
   total_time_spent: string,
