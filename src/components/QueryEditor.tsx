@@ -11,7 +11,8 @@ export const QueryEditor: React.FC<Props> = (props) => {
 
   const loadFieldOptions = useCallback(async (type: string): Promise<any> => {
     // Fetch the data once
-    const { issueFieldValuesDictionary, epicFieldValuesDictionary } = await props.datasource.getIssuesAndEpics(props.datasource.groupId);
+    const { issueFieldValuesDictionary, epicFieldValuesDictionary } = await props.datasource.localData
+    // const { issueFieldValuesDictionary, epicFieldValuesDictionary } = await props.datasource.getIssuesAndEpics(props.datasource.apiUrl, props.datasource.groupId, props.datasource.accessToken);
 
     let res = type === "issue" ? issueFieldValuesDictionary : epicFieldValuesDictionary;
     return res;

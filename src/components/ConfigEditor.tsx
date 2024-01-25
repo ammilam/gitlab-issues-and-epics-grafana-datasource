@@ -4,7 +4,6 @@ import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { InlineField, InlineFieldRow, Input } from '@grafana/ui';
 import { MyDataSourceOptions } from '../types';
 
-
 interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> {}
 
 interface State {}
@@ -28,6 +27,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
   onGroupIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
     onOptionsChange({ ...options, jsonData: { ...options.jsonData, groupId: Number(event.target.value) } });
+
   };
 
   render() {
