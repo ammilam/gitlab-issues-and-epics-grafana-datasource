@@ -3,7 +3,7 @@ import { MyDataSourceOptions, MyQuery, EpicObjectType, IssueObjectType } from '.
 import { getTemplateSrv } from '@grafana/runtime';
 import { getDiffInDays as DiffDays, getDateInfo as DateInfo } from 'lib/dates';
 import { formatName as NameFormat } from 'lib/format';
-import { getIssuesAndEpics as IssuesAndEpics } from 'lib/api';
+import { fetchIssuesAndEpicsFromGitlab as IssuesAndEpics } from 'lib/api';
 
 
 interface LocalData {
