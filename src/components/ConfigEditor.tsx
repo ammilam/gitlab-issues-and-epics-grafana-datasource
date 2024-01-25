@@ -31,14 +31,38 @@ export class ConfigEditor extends PureComponent<Props, State> {
 
   onGroupNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
-    onOptionsChange({ ...options, jsonData: { ...options.jsonData, groupName: event.target.value } });
+    const updatedOptions = {
+      ...options,
+      jsonData: {
+        ...options.jsonData,
+        groupName: event.target.value,
+      },
+    };
+    onOptionsChange(updatedOptions);
   };
 
+  // onApiCallTypeChange = (selected: SelectableValue<string>) => {
+  //   const { onOptionsChange, options } = this.props;
+  //   const apiCallType = selected.length > 0 ? selected[0].value : '';
+  //   const updatedOptions = {
+  //     ...options,
+  //     jsonData: {
+  //       ...options.jsonData,
+  //       apiCallType: apiCallType,
+  //     },
+  //   };
+  //   onOptionsChange(updatedOptions);
+  // };
 
   onApiCallTypeChange = (selected: SelectableValue<string>) => {
-    const { onOptionsChange, options } = this.props;
-    const apiCallType = selected.length > 0 ? selected[0].value : '';
-    onOptionsChange({ ...options, jsonData: { ...options.jsonData, apiCallType: apiCallType } });
+    let { onOptionsChange, options } = this.props;
+
+    onOptionsChange({
+      ...options, jsonData: {
+        ...options.jsonData,
+        apiCallType: selected.value,
+      }
+    });
   };
 
   render() {
@@ -83,7 +107,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
           </InlineField>
         </InlineFieldRow>
         <InlineFieldRow>
-          <InlineField label="API Call Type" labelWidth={20}>
+          <InlineField label="API Call Type" labelWidth={14}>
             <Select
               options={[
                 { label: 'rest', value: 'rest' },

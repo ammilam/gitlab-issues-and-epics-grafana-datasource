@@ -32,7 +32,7 @@ class Cache {
   refreshInterval: number = 60 * 60 * 1000; // 1 hour
   dataRefreshPromise: Promise<void> | null = null;
 
-  constructor(apiUrl: string, groupId: number, accessToken: string) {
+  constructor(apiUrl: string, groupId: number, accessToken: string, apiCallType?: string, groupName?: string) {
     if (Cache.instance) {
       return Cache.instance;
     }
@@ -40,7 +40,8 @@ class Cache {
     this.apiUrl = apiUrl;
     this.groupId = groupId;
     this.accessToken = accessToken;
-    this.apiCallType = this.apiCallType || '';
+    this.apiCallType = apiCallType || '';
+    this.groupName = groupName || '';
     this.initializePeriodicRefresh();
 
     Cache.instance = this;
@@ -111,7 +112,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.accessToken = instanceSettings.jsonData.accessToken || '';
     this.groupId = instanceSettings.jsonData.groupId || 0;
     this.groupName = instanceSettings.jsonData.groupName || '';
-    this.cache = new Cache(this.apiUrl, this.groupId, this.accessToken);
+    this.cache = new Cache(this.apiUrl, this.groupId, this.accessToken, this.apiCallType, this.groupName);
   }
 
   async getUniqueFieldValues(field: string, allData: any[]): Promise<string[]> {
