@@ -35,7 +35,8 @@ export interface MyDataSourceOptions extends DataSourceJsonData {
   apiUrl: string;
   groupId: number;
   accessToken: string;
-
+  groupName: string;
+  apiCallType: string | undefined;
 }
 
 export interface MySecureJsonData {

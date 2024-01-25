@@ -3,7 +3,7 @@ import { MyDataSourceOptions, MyQuery, EpicObjectType, IssueObjectType } from '.
 import { getTemplateSrv } from '@grafana/runtime';
 import { getDiffInDays as DiffDays, getDateInfo as DateInfo } from 'lib/dates';
 import { formatName as NameFormat } from 'lib/format';
-import { getIssuesAndEpics as IssuesAndEpics } from 'lib/api';
+import { getIssuesAndEpicsGraphql, getIssuesAndEpicsRest } from 'lib/api';
 
 
 interface LocalData {
@@ -25,12 +25,14 @@ class Cache {
   static lastRefreshed: Date | null = null;
 
   apiUrl?: string;
+  apiCallType?: string;
   groupId?: number;
+  groupName?: string;
   accessToken?: string;
   refreshInterval: number = 60 * 60 * 1000; // 1 hour
   dataRefreshPromise: Promise<void> | null = null;
 
-  constructor(apiUrl: string, groupId: number, accessToken: string) {
+  constructor(apiUrl: string, groupId: number, accessToken: string, apiCallType?: string, groupName?: string) {
     if (Cache.instance) {
       return Cache.instance;
     }
@@ -38,6 +40,8 @@ class Cache {
     this.apiUrl = apiUrl;
     this.groupId = groupId;
     this.accessToken = accessToken;
+    this.apiCallType = apiCallType || '';
+    this.groupName = groupName || '';
     this.initializePeriodicRefresh();
 
     Cache.instance = this;
@@ -65,13 +69,16 @@ class Cache {
   }
 
   async refreshData(): Promise<void> {
-    const data = await IssuesAndEpics(this.apiUrl || '', this.groupId || 0, this.accessToken || '');
+
+    const data = this.apiCallType === "rest" ? await getIssuesAndEpicsRest(this.apiUrl || '', this.groupId || 0, this.accessToken || '') : await getIssuesAndEpicsGraphql(this.apiUrl || '', this.groupName || '', this.accessToken || '');
+    
     Cache.localData = {
       issues: data.issues,
       epics: data.epics,
       issueFieldValuesDictionary: data.issueFieldValuesDictionary,
       epicFieldValuesDictionary: data.epicFieldValuesDictionary,
     };
+    
     Cache.lastRefreshed = new Date();
     this.dataRefreshPromise = null;
   }
@@ -80,8 +87,10 @@ class Cache {
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   apiUrl: string;
+  apiCallType?: string;
   accessToken: string;
   groupId: number;
+  groupName?: string;
   private cache: Cache;
 
   localData: LocalData = {
@@ -99,13 +108,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     super(instanceSettings);
 
     this.apiUrl = instanceSettings.jsonData.apiUrl || '';
+    this.apiCallType = instanceSettings.jsonData.apiCallType || '';
     this.accessToken = instanceSettings.jsonData.accessToken || '';
-    this.groupId = instanceSettings.jsonData.groupId;
-    this.cache = new Cache(this.apiUrl, this.groupId, this.accessToken);
-
+    this.groupId = instanceSettings.jsonData.groupId || 0;
+    this.groupName = instanceSettings.jsonData.groupName || '';
+    this.cache = new Cache(this.apiUrl, this.groupId, this.accessToken, this.apiCallType, this.groupName);
   }
-
-
 
   async getUniqueFieldValues(field: string, allData: any[]): Promise<string[]> {
     const uniqueFieldValuesSet = allData.reduce((uniqueValues, item) => {

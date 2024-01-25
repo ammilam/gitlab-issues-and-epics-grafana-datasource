@@ -1,33 +1,68 @@
-import  React, { PureComponent } from 'react';
+import React, { PureComponent } from 'react';
 
-import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import { InlineField, InlineFieldRow, Input } from '@grafana/ui';
+import { DataSourcePluginOptionsEditorProps, SelectableValue } from '@grafana/data';
+import { InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
 import { MyDataSourceOptions } from '../types';
 
-interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> {}
+interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> { }
 
-interface State {}
+interface State { }
 
 export class ConfigEditor extends PureComponent<Props, State> {
-  
+
   onApiUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
     onOptionsChange({ ...options, jsonData: { ...options.jsonData, apiUrl: event.target.value } });
   };
 
   onAccessTokenChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    
+
     const { onOptionsChange, options } = this.props;
 
-    onOptionsChange({ ...options, jsonData: { ...options.jsonData, accessToken: event.target.value }});
+    onOptionsChange({ ...options, jsonData: { ...options.jsonData, accessToken: event.target.value } });
 
   };
-
 
   onGroupIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
     onOptionsChange({ ...options, jsonData: { ...options.jsonData, groupId: Number(event.target.value) } });
+  };
 
+
+  onGroupNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { onOptionsChange, options } = this.props;
+    const updatedOptions = {
+      ...options,
+      jsonData: {
+        ...options.jsonData,
+        groupName: event.target.value,
+      },
+    };
+    onOptionsChange(updatedOptions);
+  };
+
+  // onApiCallTypeChange = (selected: SelectableValue<string>) => {
+  //   const { onOptionsChange, options } = this.props;
+  //   const apiCallType = selected.length > 0 ? selected[0].value : '';
+  //   const updatedOptions = {
+  //     ...options,
+  //     jsonData: {
+  //       ...options.jsonData,
+  //       apiCallType: apiCallType,
+  //     },
+  //   };
+  //   onOptionsChange(updatedOptions);
+  // };
+
+  onApiCallTypeChange = (selected: SelectableValue<string>) => {
+    let { onOptionsChange, options } = this.props;
+
+    onOptionsChange({
+      ...options, jsonData: {
+        ...options.jsonData,
+        apiCallType: selected.value,
+      }
+    });
   };
 
   render() {
@@ -57,10 +92,31 @@ export class ConfigEditor extends PureComponent<Props, State> {
         </InlineFieldRow>
         <InlineFieldRow>
           <InlineField label="Group ID" labelWidth={14}>
-            <Input 
-            width={30} 
-            value={options.jsonData.groupId} 
-            onChange={this.onGroupIdChange} />
+            <Input
+              width={30}
+              value={options.jsonData.groupId}
+              onChange={this.onGroupIdChange} />
+          </InlineField>
+        </InlineFieldRow>
+        <InlineFieldRow>
+          <InlineField label="Group Name" labelWidth={14}>
+            <Input
+              width={30}
+              value={options.jsonData.groupName}
+              onChange={this.onGroupNameChange} />
+          </InlineField>
+        </InlineFieldRow>
+        <InlineFieldRow>
+          <InlineField label="API Call Type" labelWidth={14}>
+            <Select
+              options={[
+                { label: 'rest', value: 'rest' },
+                { label: 'graphql', value: 'graphql' },
+              ]}
+              value={options.jsonData.apiCallType}
+              placeholder="Select API Call Type"
+              onChange={this.onApiCallTypeChange}
+            />
           </InlineField>
         </InlineFieldRow>
       </div>

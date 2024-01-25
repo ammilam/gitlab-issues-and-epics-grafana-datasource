@@ -3,7 +3,7 @@ import { SelectableValue, QueryEditorProps, toUtc } from '@grafana/data';
 import { Select, MultiSelect, InlineField, InlineFieldRow, DateTimePicker, Button, AsyncMultiSelect } from '@grafana/ui';
 import { DataSource } from '../datasource';
 import { MyDataSourceOptions, MyQuery, Filter } from '../types';
-
+import { issueAndEpicFields } from '../lib/constants';
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 
@@ -58,7 +58,7 @@ export const QueryEditor: React.FC<Props> = (props) => {
   query.createdBefore = query.createdBefore || null;
   useEffect(() => {
     // Get the fields from the data source
-    const dataSourceFields = props.datasource.issueAndEpicFields;
+    const dataSourceFields = issueAndEpicFields;
     setFields(dataSourceFields);
   }, [props.datasource]);
 
