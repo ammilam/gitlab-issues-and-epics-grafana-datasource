@@ -547,11 +547,11 @@ export async function getIssuesAndEpics(apiUrl: string, groupId: number, accessT
   }
 }
 
-export async function fetchIssuesAndEpicsFromGitlab(apiUrl: string, groupId: number, accessToken: string) {
+export async function fetchIssuesAndEpicsFromGitlab(apiUrl: string, groupName: string, accessToken: string) {
 
   const query = `
   {
-    group(fullPath: "cloud-foundations") {
+    group(fullPath: "${groupName}") {
       issues {
         nodes {
           id
@@ -626,6 +626,9 @@ export async function fetchIssuesAndEpicsFromGitlab(apiUrl: string, groupId: num
         "Content-Type": "application/json",
         "Authorization": `Bearer ${accessToken}`,
         "Access-Control-Allow-Origin": "*",
+        "Connection" : "keep-alive",
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        "Access-Control-Allow-Credentials": "true"
       },
       method: "POST",
       body: JSON.stringify({

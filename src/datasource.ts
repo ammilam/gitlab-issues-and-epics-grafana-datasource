@@ -3,7 +3,7 @@ import { MyDataSourceOptions, MyQuery, EpicObjectType, IssueObjectType } from '.
 import { getTemplateSrv } from '@grafana/runtime';
 import { getDiffInDays as DiffDays, getDateInfo as DateInfo } from 'lib/dates';
 import { formatName as NameFormat } from 'lib/format';
-import { fetchIssuesAndEpicsFromGitlab as IssuesAndEpics } from 'lib/api';
+import { fetchIssuesAndEpicsFromGitlab as IssuesAndEpics, getIssuesAndEpics } from 'lib/api';
 
 
 interface LocalData {
@@ -25,7 +25,9 @@ class Cache {
   static lastRefreshed: Date | null = null;
 
   apiUrl?: string;
+  apiCallType?: string;
   groupId?: number;
+  groupName?: string;
   accessToken?: string;
   refreshInterval: number = 60 * 60 * 1000; // 1 hour
   dataRefreshPromise: Promise<void> | null = null;
@@ -38,6 +40,7 @@ class Cache {
     this.apiUrl = apiUrl;
     this.groupId = groupId;
     this.accessToken = accessToken;
+    this.apiCallType = this.apiCallType || 'rest';
     this.initializePeriodicRefresh();
 
     Cache.instance = this;
@@ -65,7 +68,8 @@ class Cache {
   }
 
   async refreshData(): Promise<void> {
-    const data = await IssuesAndEpics(this.apiUrl || '', this.groupId || 0, this.accessToken || '');
+    const data = this.apiCallType === "rest" ? await getIssuesAndEpics(this.apiUrl || '', this.groupId || 0, this.accessToken || '') : await IssuesAndEpics(this.apiUrl || '', this.groupName || '0', this.accessToken || '');
+    // const data = await IssuesAndEpics(this.apiUrl || '', this.groupName || '0', this.accessToken || '');
     Cache.localData = {
       issues: data.issues,
       epics: data.epics,
@@ -80,8 +84,10 @@ class Cache {
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   apiUrl: string;
+  apiCallType?: string;
   accessToken: string;
   groupId: number;
+  groupName?: string;
   private cache: Cache;
 
   localData: LocalData = {
@@ -99,13 +105,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     super(instanceSettings);
 
     this.apiUrl = instanceSettings.jsonData.apiUrl || '';
+    this.apiCallType = instanceSettings.jsonData.apiCallType || 'rest';
     this.accessToken = instanceSettings.jsonData.accessToken || '';
-    this.groupId = instanceSettings.jsonData.groupId;
+    this.groupId = instanceSettings.jsonData.groupId || 0;
+    this.groupName = instanceSettings.jsonData.groupName || '';
     this.cache = new Cache(this.apiUrl, this.groupId, this.accessToken);
-
   }
-
-
 
   async getUniqueFieldValues(field: string, allData: any[]): Promise<string[]> {
     const uniqueFieldValuesSet = allData.reduce((uniqueValues, item) => {
