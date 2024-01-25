@@ -35,6 +35,11 @@ export interface MyDataSourceOptions extends DataSourceJsonData {
   apiUrl: string;
   groupId: number;
   accessToken: string;
+
+}
+
+export interface MySecureJsonData {
+  accessToken: string;
 }
 
 export interface MyRow {
