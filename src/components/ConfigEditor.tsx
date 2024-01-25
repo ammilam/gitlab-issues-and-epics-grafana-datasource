@@ -37,7 +37,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
 
   onApiCallTypeChange = (selected: SelectableValue<string>) => {
     const { onOptionsChange, options } = this.props;
-    const apiCallType = selected.length > 0 ? selected[0].value : 'rest';
+    const apiCallType = selected.length > 0 ? selected[0].value : '';
     onOptionsChange({ ...options, jsonData: { ...options.jsonData, apiCallType: apiCallType } });
   };
 

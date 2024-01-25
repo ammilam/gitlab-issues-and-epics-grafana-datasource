@@ -47,7 +47,7 @@ async function fetchAllPages(url: string, accessToken: string) {
 
 // a function used to fetch data from gitlab and cache it
 // makee an exported function that takes in the groupId, and returns a promise that resolves to the data
-export async function getIssuesAndEpics(apiUrl: string, groupId: number, accessToken: string): Promise<any> {
+export async function getIssuesAndEpicsRest(apiUrl: string, groupId: number, accessToken: string): Promise<any> {
   let url = `${apiUrl}/api/v4/groups/${groupId}`;
   // Rest of the code...
   try {
@@ -547,7 +547,7 @@ export async function getIssuesAndEpics(apiUrl: string, groupId: number, accessT
   }
 }
 
-export async function fetchIssuesAndEpicsFromGitlab(apiUrl: string, groupName: string, accessToken: string) {
+export async function getIssuesAndEpicsGraphql(apiUrl: string, groupName: string, accessToken: string) {
 
   const query = `
   {
