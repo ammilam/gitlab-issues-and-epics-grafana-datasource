@@ -3,7 +3,7 @@ import { MyDataSourceOptions, MyQuery, EpicObjectType, IssueObjectType } from '.
 import { getTemplateSrv } from '@grafana/runtime';
 import { getDiffInDays as DiffDays, getDateInfo as DateInfo } from 'lib/dates';
 import { formatName as NameFormat } from 'lib/format';
-import { getIssuesAndEpicsGraphql, getIssuesAndEpicsRest } from 'lib/api';
+import { getIssuesAndEpicsGraphql, getIssuesAndEpicsRest, getIssuesAndEpicsGitbreakerClient, getIssuesAndEpicsExpress } from 'lib/api';
 
 
 interface LocalData {
@@ -22,6 +22,7 @@ class Cache {
     issueFieldValuesDictionary: {},
     epicFieldValuesDictionary: {},
   };
+  
   static lastRefreshed: Date | null = null;
 
   apiUrl?: string;
@@ -70,15 +71,33 @@ class Cache {
 
   async refreshData(): Promise<void> {
 
-    const data = this.apiCallType === "rest" ? await getIssuesAndEpicsRest(this.apiUrl || '', this.groupId || 0, this.accessToken || '') : await getIssuesAndEpicsGraphql(this.apiUrl || '', this.groupName || '', this.accessToken || '');
-    
+    // const data = this.apiCallType === "rest" ? await getIssuesAndEpicsRest(this.apiUrl || '', this.groupId || 0, this.accessToken || '') : await getIssuesAndEpicsGraphql(this.apiUrl || '', this.groupName || '', this.accessToken || '');
+    let data: any;
+
+    switch (this.apiCallType) {
+      case "rest":
+        data = await getIssuesAndEpicsRest(this.apiUrl || '', this.groupId || 0, this.accessToken || '');
+        break;
+      case "graphql":
+        data = await getIssuesAndEpicsGraphql(this.apiUrl || '', this.groupName || '', this.accessToken || '');
+        break;
+      case "gitbreaker":
+        data = await getIssuesAndEpicsGitbreakerClient(this.apiUrl || '', this.groupId || 0, this.accessToken || '');
+        break;
+      case "express":
+        data = await getIssuesAndEpicsExpress(this.apiUrl || '', this.groupId || 0);
+        break;
+      default:
+        data = await getIssuesAndEpicsRest(this.apiUrl || '', this.groupId || 0, this.accessToken || '');
+    }
+
     Cache.localData = {
       issues: data.issues,
       epics: data.epics,
       issueFieldValuesDictionary: data.issueFieldValuesDictionary,
       epicFieldValuesDictionary: data.epicFieldValuesDictionary,
     };
-    
+
     Cache.lastRefreshed = new Date();
     this.dataRefreshPromise = null;
   }
@@ -461,17 +480,28 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     try {
       const groupId = this.groupId;
       const url = this.apiUrl
-      const response = await fetch(`${url}/api/v4/groups/${groupId}`, {
-        headers: {
-          'PRIVATE-TOKEN': `${this.accessToken}`,
-        },
-      });
-      const group = await response.json();
-      console.log(group)
-      return {
-        status: 'success',
-        message: `Connected to Gitlab group: ${groupId}`,
-      };
+      const apiCallType = this.apiCallType
+      let response: any;
+
+      if (apiCallType === 'express') {
+        response = await fetch(`${url}/health`)
+        return {
+          status: 'success',
+          message: `Connected to Gitlab group: ${groupId}`,
+        };
+      } else {
+        response = await fetch(`${url}/api/v4/groups/${groupId}`, {
+          headers: {
+            'PRIVATE-TOKEN': `${this.accessToken}`,
+          },
+        });
+        const group = await response.json();
+        console.log(group)
+        return {
+          status: 'success',
+          message: `Connected to Gitlab group: ${groupId}`,
+        };
+      }
     } catch (error) {
       console.error(error);
       return {
@@ -608,6 +638,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     let frame = typeFilter === "issue" ? issueFrame : epicFrame
     return [frame];
-    
+
   }
 }
