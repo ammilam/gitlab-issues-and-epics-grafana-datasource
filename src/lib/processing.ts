@@ -3,6 +3,7 @@ import { getDiffInDays, getDateInfo } from 'lib/dates';
 import { formatName } from './format';
 type ValueTypes = string | number | boolean | Date | undefined | string[]; // Add here any other type that might appear in your obj.
 
+// a function used to get unique values for a field
 export function getUniqueFieldValues(field: string, allData: any[]): string[] {
   const uniqueFieldValuesSet = allData.reduce((uniqueValues, item) => {
     let fieldValue;
@@ -22,6 +23,7 @@ export function getUniqueFieldValues(field: string, allData: any[]): string[] {
   return Array.from(uniqueFieldValuesSet);
 }
 
+// a function used to find the most common element in an array
 export function findMostCommonElement(arr: any[]): any {
   const frequencyMap: Map<any, number> = new Map();
 
@@ -48,6 +50,7 @@ export function findMostCommonElement(arr: any[]): any {
   return mostCommonElement;
 }
 
+// a function that processes issues and epics from Gitlab and returns an object containing the issues, epics, and dictionaries of field values
 export async function processGitlabData(issues: any, epics: any): Promise<any> {
 
   try {

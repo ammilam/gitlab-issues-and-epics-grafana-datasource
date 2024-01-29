@@ -3,24 +3,27 @@ import { processGitlabData } from './processing';
 import Bottleneck from 'bottleneck';
 import { Gitlab } from '@gitbeaker/browser';
 import { Buffer } from "buffer";
-// import { request } from 'graphql-request';
 
-
+// a sleep function to wait between requests
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// create a limiter to limit the number of requests per minute
 const limiter = new Bottleneck({
   maxConcurrent: 10, // Adjust based on the rate limit (300 calls per minute)
   minTime: 200, // Wait at least 200ms between each request
 });
 
+// a function to fetch all the pages of a paginated response
 async function fetchAllPages(url: string, accessToken: string) {
-  let results = [];
-  let page = 1;
-  let hasMorePages = true;
+  let results = []; // store all results in this array
+  let page = 1; // start with page 1
+  let hasMorePages = true; // assume there are more pages to fetch
 
+  // while there are more pages to fetch
   while (hasMorePages) {
+    // fetch the next page
     const fetchData = async (url: string, page: number) => {
       const response = await fetch(`${url}&page=${page}`, {
         headers: {
@@ -34,19 +37,20 @@ async function fetchAllPages(url: string, accessToken: string) {
     // Schedule the request with limiter
     const data = await limiter.schedule(() => fetchData(url, page));
 
+    // if the response is not empty, push the data to the results array and increment the page number
     if (data && data.length > 0) {
       results.push(...data);
       page++;
     } else {
+      // if the response is empty, there are no more pages to fetch
       hasMorePages = false;
     }
   }
 
-  return results;
+  return results; // return the results
 }
 
-// a function used to fetch data from gitlab and cache it
-// makee an exported function that takes in the groupId, and returns a promise that resolves to the data
+// a function used to fetch issues and epics from the Gitlab REST API
 export async function getIssuesAndEpicsRest(apiUrl: string, groupId: number, accessToken: string): Promise<any> {
   
   let url = `${apiUrl}/api/v4/groups/${groupId}`;
@@ -199,6 +203,7 @@ const fetchPage = async (apiUrl: string, groupName: string, accessToken: string,
   return response.json();
 }
 
+// a function used to fetch issues and epics from the Gitlab GraphQL API
 export async function getIssuesAndEpicsGraphql(apiUrl: string, groupName: string, accessToken: string) {
 
   try {
@@ -237,6 +242,7 @@ export async function getIssuesAndEpicsGraphql(apiUrl: string, groupName: string
   }
 }
 
+// a function used to fetch issues and epics from the Gitlab Gitbreaker Client Library
 export async function getIssuesAndEpicsGitbreakerClient(apiUrl: string, groupId: number, accessToken: string): Promise<any> {
 
   try {
@@ -258,6 +264,7 @@ export async function getIssuesAndEpicsGitbreakerClient(apiUrl: string, groupId:
   }
 }
 
+// a function used to fetch issues and epics from a custom Expressjs API
 export async function getIssuesAndEpicsExpress(apiUrl: string, groupId: number): Promise<any> {
 
   try {

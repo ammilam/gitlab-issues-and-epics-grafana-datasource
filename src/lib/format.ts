@@ -1,3 +1,4 @@
+// a function that takes in a name and returns a string in the format "First Last"
 export function formatName(name: string): string {
   if (name) {
     const nameParts = name.split(".");
@@ -13,6 +14,8 @@ export function formatName(name: string): string {
   return name; // Return the original name if it's undefined or doesn't match the expected format
 }
 
+
+// a function that takes in a date and returns a string in the format "YYYY-MM-DD"
 export function fDate(date: Date) {
   return new Date(date).toTimeString()
 }

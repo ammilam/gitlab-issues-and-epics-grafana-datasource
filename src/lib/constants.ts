@@ -1,3 +1,4 @@
+// a list of fields to be used in the query, consumed in QueryEditor.tsx
 export function issueAndEpicFields(): string[] {
   return [
     'id',

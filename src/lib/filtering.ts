@@ -1,6 +1,6 @@
-
 import {  MutableDataFrame } from '@grafana/data';
 
+// a function used to apply a type filter to a list of dataframes
 export function applyTypeFilter(
   typeFilter: string,
   dataFrames: MutableDataFrame[]
@@ -22,6 +22,7 @@ export function applyTypeFilter(
   });
 }
 
+// a function used to apply a date filter to a list of dataframes
 export function applyDateFilter(
   createdAfter: Date | null,
   createdBefore: Date | null,
