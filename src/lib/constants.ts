@@ -59,7 +59,6 @@ export function issueAndEpicFields(): string[] {
     'sprintStartDate',
     'sprintEndDate',
     'daysLeftInSprint',
-    //O&I Metrics
     'epic_category',
     'epic_priority',
     'epic_pillar'

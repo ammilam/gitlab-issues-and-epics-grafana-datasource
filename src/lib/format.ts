@@ -12,3 +12,7 @@ export function formatName(name: string): string {
 
   return name; // Return the original name if it's undefined or doesn't match the expected format
 }
+
+export function fDate(date: Date) {
+  return new Date(date).toTimeString()
+}

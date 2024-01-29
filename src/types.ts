@@ -136,3 +136,10 @@ export type EpicObjectType = {
   Value: number,
   [key: string]: any; // This is the index signature
 };
+
+export interface LocalData {
+  issues: IssueObjectType[];
+  epics: EpicObjectType[];
+  issueFieldValuesDictionary: Record<string, any>;
+  epicFieldValuesDictionary: Record<string, any>;
+}
