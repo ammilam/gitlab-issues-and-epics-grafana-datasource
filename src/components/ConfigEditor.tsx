@@ -41,19 +41,6 @@ export class ConfigEditor extends PureComponent<Props, State> {
     onOptionsChange(updatedOptions);
   };
 
-  // onApiCallTypeChange = (selected: SelectableValue<string>) => {
-  //   const { onOptionsChange, options } = this.props;
-  //   const apiCallType = selected.length > 0 ? selected[0].value : '';
-  //   const updatedOptions = {
-  //     ...options,
-  //     jsonData: {
-  //       ...options.jsonData,
-  //       apiCallType: apiCallType,
-  //     },
-  //   };
-  //   onOptionsChange(updatedOptions);
-  // };
-
   onApiCallTypeChange = (selected: SelectableValue<string>) => {
     let { onOptionsChange, options } = this.props;
 
@@ -112,6 +99,8 @@ export class ConfigEditor extends PureComponent<Props, State> {
               options={[
                 { label: 'rest', value: 'rest' },
                 { label: 'graphql', value: 'graphql' },
+                { label: 'gitbreaker', value: 'gitbreaker'},
+                { label: 'express', value: 'express'}
               ]}
               value={options.jsonData.apiCallType}
               placeholder="Select API Call Type"

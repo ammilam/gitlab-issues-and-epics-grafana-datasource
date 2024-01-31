@@ -1,10 +1,13 @@
+// Date related functions
 
+// a function that gets the difference in days between two dates
 export function getDiffInDays(date1: Date, date2: Date): string {
   const diffInMs = Math.abs(date1.getTime() - date2.getTime());
   let res = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
   return String(res)
 }
 
+// a function that takes in a date and returns a string in the format "YYYY-MM-DD"
 export function getDateInfo(date: Date): { monthName: string, monthNumber: number, year: number, dateThreshold: string } {
   const monthNumberInYear = date.getMonth();
   const year = date.getFullYear();

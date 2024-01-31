@@ -195,6 +195,10 @@ const config = async (env): Promise<Configuration> => ({
     // handle resolving "rootDir" paths
     modules: [path.resolve(process.cwd(), 'src'), 'node_modules'],
     unsafeCache: true,
+    fallback: {
+      "https": require.resolve("https-browserify"),
+      // Add other polyfills as needed
+    },
   },
 });
 
