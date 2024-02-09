@@ -1,0 +1,19 @@
+{
+  "name": "gitlab-issues-and-epics-caching-server",
+  "version": "1.0.0",
+  "description": "A nodejs express server that collects data from Gitlab and caches it for the Grafana Gitlab Datasource.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "concurrently 'node app.js' 'node ./lib/gitlab.js'"
+  },
+  "author": "Andrew Milam",
+  "license": "ISC",
+  "dependencies": {
+    "@gitbeaker/rest": "^39.34.2",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.3"
+  }
+}
