@@ -17,4 +17,5 @@ RUN mkdir /usr/src/app/billing
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
+RUN chown -R node:node /usr/src/app
 CMD ["dumb-init", "npm", "run", "server"]
