@@ -6,7 +6,6 @@ FROM node:$NODE_VERSION AS build
 WORKDIR /usr/src/app
 COPY package*.json /usr/src/app/
 RUN npm ci --omit=dev --only=production
-RUN sudo chown -R 472:472 "/.npm"
 
 FROM node:$NODE_VERSION
 
@@ -18,4 +17,5 @@ RUN mkdir /usr/src/app/billing
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
+RUN chown -R node:node /usr/src/app
 CMD ["dumb-init", "npm", "run", "server"]
