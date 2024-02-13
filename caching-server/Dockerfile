@@ -6,6 +6,7 @@ FROM node:$NODE_VERSION AS build
 WORKDIR /usr/src/app
 COPY package*.json /usr/src/app/
 RUN npm ci --omit=dev --only=production
+RUN sudo chown -R 472:472 "/.npm"
 
 FROM node:$NODE_VERSION
 
