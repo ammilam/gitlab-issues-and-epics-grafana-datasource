@@ -21,7 +21,7 @@ const api = new Gitlab({
   }
 });
 
-async function writeFile(groups) {
+async function writeFile([groups]) {
   try {
 
 
@@ -53,7 +53,7 @@ async function writeFile(groups) {
       }
 
       // writing local dictionary file
-      fs.writeFileSync(`${group}.json`, JSON.stringify(obj))
+      fs.writeFileSync(`./data/${group}.json`, JSON.stringify(obj))
     }
   } else {
     // log out what is missing from the environment variables
