@@ -16,5 +16,6 @@ USER node
 WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
+RUN chown -R $(id -u node):$(id -g node) /.npm
 EXPOSE 8080
 CMD ["npm", "run", "server"]
