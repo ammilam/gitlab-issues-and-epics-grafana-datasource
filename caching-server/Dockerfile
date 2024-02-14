@@ -11,6 +11,9 @@ FROM node:$NODE_VERSION
 
 ENV NODE_ENV production
 WORKDIR /usr/src/app
+RUN mkdir .npm
+ENV npm_config_cache /usr/src/app/.npm
+RUN chown -R node:node /usr/src/app
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 RUN npm cache clean --force 
