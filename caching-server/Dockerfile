@@ -17,8 +17,9 @@ USER node
 RUN chown -R node:node /usr/src/app/.npm/
 
 WORKDIR /usr/src/app
+RUN mkdir -p /usr/src/app/data
+RUN chown -R node:node /usr/src/app/data
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
-RUN chown -R node:node /usr/src/app
 EXPOSE 8080
 CMD ["npm", "run", "server"]
