@@ -10,8 +10,10 @@ RUN npm ci --omit=dev --only=production
 FROM node:$NODE_VERSION
 
 ENV NODE_ENV production
+RUN mkdir .npm
+RUN chown -R 472:472 ".npm"
 WORKDIR /usr/src/app
-RUN mkdir /usr/src/app/npm
+RUN mkdir /usr/src/app
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
