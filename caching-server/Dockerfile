@@ -13,12 +13,12 @@ FROM node:$NODE_VERSION AS production
 ENV npm_config_cache /usr/src/app/.npm
 ENV NODE_ENV production
 RUN mkdir -p /usr/src/app/.npm && chown -R node:node /usr/src/app
-USER node
 RUN chown -R node:node /usr/src/app/.npm/
+USER node
 
 WORKDIR /usr/src/app
-RUN mkdir -p /usr/src/app/data
-RUN chown -R node:node /usr/src/app/data
+RUN mkdir -p /usr/src/app/data && chown -R node:node /usr/src/app/data
+
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
