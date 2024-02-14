@@ -1,5 +1,5 @@
 # Build Arguments
-ARG NODE_VERSION=20.11-alpine:8080
+ARG NODE_VERSION=20.11-alpine
 
 #Build Image
 FROM node:$NODE_VERSION AS build
