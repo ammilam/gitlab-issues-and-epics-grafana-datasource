@@ -5,13 +5,14 @@ ARG NODE_VERSION=20.11-alpine
 FROM node:$NODE_VERSION AS build
 WORKDIR /usr/src/app
 COPY package*.json /usr/src/app/
+RUN npm cache clean --force
 RUN npm ci --omit=dev --only=production
 
 FROM node:$NODE_VERSION
 
 ENV NODE_ENV production
 WORKDIR /usr/src/app
-RUN mkdir /usr/src/app/billing
+RUN mkdir /usr/src/app/npm
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
