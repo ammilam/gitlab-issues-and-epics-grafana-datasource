@@ -16,7 +16,7 @@ RUN mkdir -p /usr/src/app && chown -R node:node /usr/src/app
 USER node
 
 WORKDIR /usr/src/app
-ENV npm_config_cache /usr/src/app/
+ENV npm_config_cache /tmp/.npm
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
