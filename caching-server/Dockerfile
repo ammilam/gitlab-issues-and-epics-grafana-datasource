@@ -1,5 +1,5 @@
 # Build Arguments
-ARG NODE_VERSION=21.4.0-alpine3.17
+ARG NODE_VERSION=20.11-alpine:8080
 
 #Build Image
 FROM node:$NODE_VERSION AS build
@@ -17,5 +17,4 @@ RUN mkdir /usr/src/app/billing
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
-RUN chown -R node:node /usr/src/app
 CMD ["dumb-init", "npm", "run", "server"]
