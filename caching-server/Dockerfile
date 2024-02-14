@@ -10,9 +10,7 @@ RUN npm ci --omit=dev --only=production
 FROM node:$NODE_VERSION
 
 ENV NODE_ENV production
-USER root
 RUN mkdir /.npm && chown node:node /.npm
-USER node
 WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
