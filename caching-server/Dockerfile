@@ -15,5 +15,6 @@ RUN mkdir /usr/src/app/billing
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
+RUN chown -R 472:472 "/usr/src/app"
 USER node
 CMD ["npm", "run", "server"]
