@@ -10,10 +10,10 @@ RUN npm ci --omit=dev --only=production
 FROM node:$NODE_VERSION
 
 ENV NODE_ENV production
-USER node
 WORKDIR /usr/src/app
 RUN mkdir /usr/src/app/billing
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
+USER node
 CMD ["npm", "run", "server"]
