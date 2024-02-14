@@ -14,7 +14,8 @@ ENV NODE_ENV production
 USER node
 
 WORKDIR /usr/src/app
-# ENV npm_config_cache /usr/src/app/.npm
+ENV npm_config_cache /usr/src/app/.npm
+RUN chown -R node:node /usr/src/app
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
