@@ -10,11 +10,10 @@ RUN npm ci --omit=dev --only=production
 FROM node:$NODE_VERSION
 
 ENV NODE_ENV production
-RUN apk add --no-cache dumb-init
 USER node
 WORKDIR /usr/src/app
 RUN mkdir /usr/src/app/billing
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
-CMD ["dumb-init", "npm", "run", "server"]
+CMD ["npm", "run", "server"]
