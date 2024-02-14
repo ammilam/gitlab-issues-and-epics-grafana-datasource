@@ -24,45 +24,44 @@ const api = new Gitlab({
 async function writeFile([groups]) {
   try {
 
-
     if (groups.length > 0 && gitlabToken && gitlabHost) {
 
-    const now = new Date();
+      const now = new Date();
 
-    console.log(`Starting data collection at ${now}`);
+      console.log(`Starting data collection at ${now}`);
 
-    for (let i = 0; i < groups.length; i++) {
+      for (let i = 0; i < groups.length; i++) {
 
-      const group = groups[i];
+        const group = groups[i];
 
-      console.log(`Getting issues for group ${group}`)
+        console.log(`Getting issues for group ${group}`)
 
-      const issues = await api.Issues.all({
-        groupId: group,
-      });
+        const issues = await api.Issues.all({
+          groupId: group,
+        });
 
-      console.log(`Getting epics for group ${group}`)
+        console.log(`Getting epics for group ${group}`)
 
-      const epics = await api.Epics.all(group)
+        const epics = await api.Epics.all(group)
 
-      let issuesCount = issues.length
-      let epicsCount = epics.length
+        let issuesCount = issues.length
+        let epicsCount = epics.length
 
-      let obj = {
-        issues, issuesCount, epicsCount, epics
+        let obj = {
+          issues, issuesCount, epicsCount, epics
+        }
+
+        // writing local dictionary file
+        fs.writeFileSync(`./data/${group}.json`, JSON.stringify(obj))
       }
-
-      // writing local dictionary file
-      fs.writeFileSync(`./data/${group}.json`, JSON.stringify(obj))
-    }
-  } else {
-    // log out what is missing from the environment variables
-    for (const [key, value] of Object.entries(responseMap)) {
-      if (!process.env[key]) {
-        console.log(value)
+    } else {
+      // log out what is missing from the environment variables
+      for (const [key, value] of Object.entries(responseMap)) {
+        if (!process.env[key]) {
+          console.log(value)
+        }
       }
     }
-  }
   } catch (error) {
     console.log("error writing to file" + error)
   }

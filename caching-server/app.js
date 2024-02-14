@@ -58,13 +58,13 @@ app.get('/issues', async (req, res) => {
     console.log(`Getting data for group ${group}`)
 
     let groupData = `./data/${group}.json`;
-    
+
     let data = fs.readFileSync(groupData);
 
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString()
 
-    res.status(200).json({issues: JSON.parse(buf)['issues']})
+    res.status(200).json({ issues: JSON.parse(buf)['issues'] })
 
   } catch (error) {
     console.log(error)
@@ -86,13 +86,13 @@ app.get('/epics', async (req, res) => {
     console.log(`Getting data for group ${group}`)
 
     let groupData = `./data/${group}.json`;
-    
+
     let data = fs.readFileSync(groupData);
 
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString()
 
-    res.status(200).json({epics: JSON.parse(buf)['epics']})
+    res.status(200).json({ epics: JSON.parse(buf)['epics'] })
 
   } catch (error) {
     console.log(error)
