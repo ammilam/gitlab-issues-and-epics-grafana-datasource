@@ -2,9 +2,9 @@ ARG NODE_VERSION=20.11-bullseye-slim
 
 FROM node:$NODE_VERSION AS build
 WORKDIR /usr/src/app
-COPY package*.json /usr/src/app/
+COPY --chown=node:node package*.json /usr/src/app/
 RUN npm ci --only=production
-
+RUN mkdir -p /usr/src/app/.npm && chown -R node:node /usr/src/app/.npm
 
 FROM node:$NODE_VERSION AS production
 
