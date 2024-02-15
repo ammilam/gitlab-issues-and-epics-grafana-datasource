@@ -17,6 +17,8 @@ RUN mkdir -p /usr/src/app/
 ENV npm_config_cache /usr/src/app/.npm
 RUN chown -R node:node /usr/src/app
 
+# Change ownership of the npm cache directory to the node user
+RUN chown -R node:node /usr/src/app/.npm
 
 USER node
 ENV NODE_ENV production
@@ -24,8 +26,6 @@ ENV NODE_ENV production
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY . /usr/src/app
 EXPOSE 8080
-
-# Recursively set ownership of all subdirectories under the work dir
 
 # Use dumb-init as the entrypoint
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
