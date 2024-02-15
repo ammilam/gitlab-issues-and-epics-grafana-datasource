@@ -2,10 +2,10 @@ const { Gitlab } = require('@gitbeaker/rest');
 const fs = require('fs');
 const cron = require('node-cron');
 
-const gitlabToken = process.env.token // Access token for GitLab API
-const gitlabHost = process.env.host  // GitLab API endpoint
-const groups = process.env.groups || [] // GitLab group IDs
-const cronSchedule = process.env.cronSchedule || '*/15 * * * *' // cron schedule
+const gitlabToken = process.env.token || process.env.GIT_ASKPASS // Access token for GitLab API
+const gitlabHost = process.env.host// GitLab host
+const groups = [process.env.groups] || [] // GitLab group IDs
+const cronSchedule = process.env.cronSchedule || '*/5 * * * *' // cron schedule
 
 const responseMap = {
   "groups": "No groups to process",
@@ -16,12 +16,10 @@ const responseMap = {
 const api = new Gitlab({
   token: gitlabToken,
   host: gitlabHost,
-  rateLimits: {
-    '**': 30,
-  }
 });
 
-async function writeFile([groups]) {
+async function writeFile(groups) {
+
   try {
 
     if (groups.length > 0 && gitlabToken && gitlabHost) {
@@ -38,7 +36,7 @@ async function writeFile([groups]) {
 
         const issues = await api.Issues.all({
           groupId: group,
-        });
+        })
 
         console.log(`Getting epics for group ${group}`)
 
@@ -52,7 +50,7 @@ async function writeFile([groups]) {
         }
 
         // writing local dictionary file
-        fs.writeFileSync(`./data/${group}.json`, JSON.stringify(obj))
+        fs.writeFileSync(`./data/${group}.json`, JSON.stringify(obj));
       }
     } else {
       // log out what is missing from the environment variables
