@@ -178,7 +178,7 @@ const fetchPage = async (apiUrl: string, groupName: string, accessToken: string,
     }
   }
   `
-  const proxyUrl = 'http://localhost:8080/graphql-proxy'; // URL of your proxy server
+  const proxyUrl = 'http://localhost:3000/graphql-proxy'; // URL of your proxy server
 
   const response: any = await fetch(proxyUrl, {
     headers: {
