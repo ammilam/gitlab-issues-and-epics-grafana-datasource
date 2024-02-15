@@ -16,10 +16,10 @@ ENV npm_config_cache /usr/src/app/.npm
 COPY . /usr/src/app
 
 COPY --from=build --chown=node:node /usr/src/app/node_modules /usr/src/app/node_modules
-RUN mkdir -p /usr/src/app/.npm && chown -R 472:472 /usr/src/app/.npm
+RUN mkdir -p /usr/src/app/.npm && chown -R 472:472 "/usr/src/app/.npm"
 RUN chown -R node:node /usr/src/app/.npm
 RUN mkdir -p /usr/src/app/data && chown -R 472:472 /usr/src/app/data
-
+RUN chown -R 1000:1000 "/usr/src/app/.npm"
 USER node
 
 CMD ["npm", "run", "server"]
