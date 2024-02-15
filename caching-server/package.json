@@ -5,13 +5,12 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "concurrently 'node app.js' 'node gitlab.js'"
+    "server": "node app.js"
   },
   "author": "Andrew Milam",
   "license": "ISC",
   "dependencies": {
     "@gitbeaker/rest": "^39.34.2",
-    "concurrently": "^8.2.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "fs": "^0.0.1-security",

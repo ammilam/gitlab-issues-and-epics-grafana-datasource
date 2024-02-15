@@ -3,6 +3,7 @@ const app = express();
 const PORT = process.env.port || 8080;
 const fs = require('fs');
 app.use(express.json());
+const { startCron, writeFile } = require('./gitlab');
 
 const cors = require('cors');
 
@@ -105,5 +106,7 @@ app.get('/health', async (req, res) => {
 })
 
 app.listen(PORT, () => {
+  writeFile()
+  startCron()
   console.log(`Proxy server running on http://localhost:${PORT}`);
 });

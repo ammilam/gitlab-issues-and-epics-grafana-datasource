@@ -3,8 +3,8 @@ const fs = require('fs');
 const cron = require('node-cron');
 
 const gitlabToken = process.env.token || process.env.GIT_ASKPASS // Access token for GitLab API
-const gitlabHost = process.env.host// GitLab host
-const groups = [process.env.groups] || [] // GitLab group IDs
+const gitlabHost = process.env.host  // GitLab host
+const groups = [process.env.groups] // GitLab group IDs
 const cronSchedule = process.env.cronSchedule || '*/5 * * * *' // cron schedule
 
 const responseMap = {
@@ -18,7 +18,7 @@ const api = new Gitlab({
   host: gitlabHost,
 });
 
-async function writeFile(groups) {
+async function writeFile() {
 
   try {
 
@@ -28,14 +28,15 @@ async function writeFile(groups) {
 
       console.log(`Starting data collection at ${now}`);
 
-      for (let i = 0; i < groups.length; i++) {
+      for (group of groups) {
 
-        const group = groups[i];
 
         console.log(`Getting issues for group ${group}`)
 
         const issues = await api.Issues.all({
           groupId: group,
+        }).catch((error) => {
+          console.log(`Error getting issues for group ${group}: ${error}`)
         })
 
         console.log(`Getting epics for group ${group}`)
@@ -66,9 +67,13 @@ async function writeFile(groups) {
 }
 
 function startCron() {
+  console.log(`Starting cron with schedule ${cronSchedule}`);
   cron.schedule(cronSchedule, () => {
     writeFile(groups);
   });
 }
 
-startCron()
+module.exports = {
+  writeFile,
+  startCron
+}
