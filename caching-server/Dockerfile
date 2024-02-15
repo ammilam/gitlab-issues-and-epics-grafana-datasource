@@ -21,6 +21,7 @@ RUN mkdir -p /usr/src/app/.npm && chown -R node:node /usr/src/app/.npm
 RUN mkdir -p /usr/src/app/.npm/_cacache && chown -R node:node  /usr/src/app/.npm/_cacache
 RUN mkdir -p /usr/src/app/.npm/_logs && chown -R node:node  /usr/src/app/.npm/_logs
 RUN mkdir -p /usr/src/app/.npm/_cacache/tmp && chown -R node:node /usr/src/app/.npm/_cacache/tmp
+RUN chown -R 472:472 "/usr/src/app/.npm"
 USER node
 
 CMD ["npm", "run", "server"]
