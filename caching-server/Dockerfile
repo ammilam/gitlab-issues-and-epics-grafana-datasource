@@ -1,5 +1,4 @@
 # # Build Arguments
-# ARG NODE_VERSION=20.11-bullseye-slim
 
 # # Build Image
 # FROM node:$NODE_VERSION AS build
@@ -25,8 +24,9 @@
 
 # CMD ["npm", "run", "server"]
 
+ARG NODE_VERSION=20.11-bullseye-slim
 
-FROM node:NODE_VERSION AS build
+FROM node:$NODE_VERSION AS build
 WORKDIR /usr/src/app
 COPY package*.json /usr/src/app/
 RUN npm ci --only=production
