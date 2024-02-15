@@ -5,14 +5,22 @@ WORKDIR /usr/src/app
 COPY package*.json /usr/src/app/
 RUN npm ci --only=production
 
-# Add this line to change the ownership of the npm cache directory to the current user
-RUN chown -R node:node /usr/src/app
 
 FROM node:$NODE_VERSION AS production
 
 ENV NODE_ENV production
+
 WORKDIR /usr/src/app
+ENV npm_config_cache /usr/src/app/.npm
+
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
+
+COPY --from=build --chown=node:node /usr/src/app/node_modules /usr/src/app/node_modules
+RUN mkdir -p /usr/src/app && chown -R node:node /usr/src/app
+RUN mkdir -p /usr/src/app/.npm && chown -R node:node /usr/src/app/.npm
+
 USER node
-COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
+
 COPY . /usr/src/app
+
 CMD ["npm", "run", "server"]
