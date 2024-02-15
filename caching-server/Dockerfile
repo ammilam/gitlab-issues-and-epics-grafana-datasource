@@ -25,6 +25,7 @@ RUN chmod -R 777 /usr/src/app/data
 
 EXPOSE 3000
 EXPOSE 8080
+
 USER node
 
 CMD ["npm", "run", "server"]
