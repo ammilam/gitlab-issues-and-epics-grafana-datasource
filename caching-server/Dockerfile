@@ -18,7 +18,8 @@ ENV PATH /usr/src/app/node_modules/.bin:$PATH
 COPY --from=build --chown=node:node /usr/src/app/node_modules /usr/src/app/node_modules
 RUN mkdir -p /usr/src/app && chown -R node:node /usr/src/app
 RUN mkdir -p /usr/src/app/.npm && chown -R node:node /usr/src/app/.npm
-
+RUN mkdir -p /usr/src/app/.cache && chown -R node:node /usr/src/app/.cache
+RUN mkdir -p  /usr/src/app/.npm/_logs && chown -R node:node  /usr/src/app/.npm/_logs
 USER node
 
 COPY . /usr/src/app
