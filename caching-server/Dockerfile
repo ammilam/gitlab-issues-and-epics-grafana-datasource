@@ -15,10 +15,6 @@ WORKDIR /usr/src/app
 RUN apt-get update && apt-get install -y dumb-init
 RUN mkdir -p /usr/src/app/.npm
 ENV npm_config_cache /usr/src/app/.npm
-RUN chown -R node:node /usr/src/app
-
-# Change ownership of the npm cache directory to the node user
-RUN chown -R node:node /usr/src/app/.npm
 
 ENV NODE_ENV production
 
