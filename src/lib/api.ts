@@ -269,17 +269,15 @@ export async function getIssuesAndEpicsExpress(apiUrl: string, groupId: number):
 
   try {
     console.log(`proxying request to gitlab through ${apiUrl}/gitlab?group=${groupId}`)
-    const response = await fetch(`${apiUrl}/gitlab?group=${groupId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
-    // buffer and base64 decode the response body
-    let data = await response.json();
-    const decodedBody: any = await JSON.parse(Buffer.from(data['data'], 'base64').toString('utf8'))
+    const response = await fetch(`${apiUrl}/gitlab?group=${groupId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    const decodedData = JSON.parse(Buffer.from(data.data, 'base64').toString('utf8'));
 
-    const processedData =  await processGitlabData(decodedBody['issues'], decodedBody['epics']);
+    const processedData = await processGitlabData(decodedData.issues, decodedData.epics);
+    ;
     // parse the response body as JSON
     const { issueFieldValuesDictionary, epicFieldValuesDictionary, issues, epics } = await processedData;
     return { issues: issues || [], epics: epics || [], issueFieldValuesDictionary: issueFieldValuesDictionary || {}, epicFieldValuesDictionary: epicFieldValuesDictionary || {} };
