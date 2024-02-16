@@ -23,8 +23,6 @@ RUN chown -R 1000:1000 "/usr/src/app/.npm"
 RUN chown -R node:node /usr/src/app/data 
 RUN chmod -R 777 /usr/src/app/data
 
-EXPOSE 3000
-EXPOSE 8080
 USER node
 
 CMD ["npm", "run", "server"]
