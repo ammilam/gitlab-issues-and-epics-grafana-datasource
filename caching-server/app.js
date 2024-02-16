@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const PORT = process.env.port || 8080;
+const origin = process.env.origin || '*';
 const fs = require('fs');
 app.use(express.json());
 const { startCron, writeFile } = require('./gitlab');
@@ -8,9 +9,9 @@ const { startCron, writeFile } = require('./gitlab');
 const cors = require('cors');
 
 const corsOptions = {
-  origin: "*", // Allow requests from Grafana service DNS
+  origin: origin, // Allow requests from Grafana service DNS
   methods: "GET, HEAD, PUT, PATCH, POST, DELETE",
-  'Access-Control-Allow-Origin': "*", // Allow CORS for Grafana service DNS
+  'Access-Control-Allow-Origin': origin, // Allow CORS for Grafana service DNS
 };
 
 // Use CORS middleware
