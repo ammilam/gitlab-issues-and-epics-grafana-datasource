@@ -6,13 +6,7 @@ const fs = require('fs');
 app.use(express.json());
 const cors = require('cors')
 
-const corsOptions = {
-  origin: origin,
-  allowedHeaders: '*',
-  exposedHeaders: '*'
-};
-
-app.use(cors(corsOptions))
+app.use(cors())
 
 const { startCron, writeFile } = require('./gitlab');
 
