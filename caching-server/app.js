@@ -5,16 +5,16 @@ const fs = require('fs');
 app.use(express.json());
 const { startCron, writeFile } = require('./gitlab');
 
-const cors = require('cors');
+// const cors = require('cors');
 
-const corsOptions = {
-  "origin": "*",
-  "methods": "GET, HEAD, PUT, PATCH, POST, DELETE",
-  'Access-Control-Allow-Origin': '*'
-}
+// const corsOptions = {
+//   "origin": "*",
+//   "methods": "GET, HEAD, PUT, PATCH, POST, DELETE",
+//   'Access-Control-Allow-Origin': '*'
+// }
 
 // Use CORS middleware
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 app.get('/gitlab', async (req, res) => {
   try {
