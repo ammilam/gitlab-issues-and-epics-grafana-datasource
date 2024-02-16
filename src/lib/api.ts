@@ -269,7 +269,12 @@ export async function getIssuesAndEpicsExpress(apiUrl: string, groupId: number):
 
   try {
     console.log(`proxying request to gitlab through ${apiUrl}/gitlab?group=${groupId}`)
-    const response = await fetch(`${apiUrl}/gitlab?group=${groupId}`);
+    const response = await fetch(`${apiUrl}/gitlab?group=${groupId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
     // buffer and base64 decode the response body
     let data = await response.json();
     const decodedBody: any = await JSON.parse(Buffer.from(data['data'], 'base64').toString('utf8'))
