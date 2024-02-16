@@ -4,6 +4,11 @@ const PORT = process.env.port || 8080;
 const origin = process.env.origin || '*';
 const fs = require('fs');
 app.use(express.json());
+const cors = require('cors')
+const corsOptions = { origin: false }
+
+app.use(cors(corsOptions))
+
 const { startCron, writeFile } = require('./gitlab');
 
 app.use((req, res, next) => {
