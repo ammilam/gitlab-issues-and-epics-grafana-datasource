@@ -6,16 +6,16 @@ const fs = require('fs');
 app.use(express.json());
 const { startCron, writeFile } = require('./gitlab');
 
-const cors = require('cors');
+// const cors = require('cors');
 
-const corsOptions = {
-  origin: origin, // Allow requests from Grafana service DNS
-  methods: "GET, HEAD, PUT, PATCH, POST, DELETE",
-  'Access-Control-Allow-Origin': origin, // Allow CORS for Grafana service DNS
-};
+// const corsOptions = {
+//   origin: origin, // Allow requests from Grafana service DNS
+//   methods: "GET, HEAD, PUT, PATCH, POST, DELETE",
+//   'Access-Control-Allow-Origin': origin, // Allow CORS for Grafana service DNS
+// };
 
 // Use CORS middleware
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 app.get('/gitlab', async (req, res) => {
   try {
