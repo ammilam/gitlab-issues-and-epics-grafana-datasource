@@ -2,8 +2,8 @@ const { Gitlab } = require('@gitbeaker/rest');
 const fs = require('fs');
 const cron = require('node-cron');
 
-const gitlabToken = process.env.token || process.env.GIT_ASKPASS // Access token for GitLab API
-const gitlabHost = process.env.host  // GitLab host
+const gitlabToken = process.env.token // process.env.token || process.env.GIT_ASKPASS // Access token for GitLab API
+const gitlabHost = process.env.host // GitLab host
 const groups = [process.env.groups] // GitLab group IDs
 const cronSchedule = process.env.cronSchedule || '*/5 * * * *' // cron schedule
 

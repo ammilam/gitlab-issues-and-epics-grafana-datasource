@@ -1,20 +1,20 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.port || 80;
+const PORT = process.env.port || 8080;
 const fs = require('fs');
 app.use(express.json());
 const { startCron, writeFile } = require('./gitlab');
 
-// const cors = require('cors');
+const cors = require('cors');
 
-// const corsOptions = {
-//   "origin": "*",
-//   "methods": "GET, HEAD, PUT, PATCH, POST, DELETE",
-//   'Access-Control-Allow-Origin': '*'
-// }
+const corsOptions = {
+  origin: "*", // Allow requests from Grafana service DNS
+  methods: "GET, HEAD, PUT, PATCH, POST, DELETE",
+  'Access-Control-Allow-Origin': "*", // Allow CORS for Grafana service DNS
+};
 
 // Use CORS middleware
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.get('/gitlab', async (req, res) => {
   try {
@@ -102,7 +102,8 @@ app.get('/epics', async (req, res) => {
 })
 
 app.get('/health', async (req, res) => {
-  res.status(200).send('OK');
+  console.log('health check')
+  res.status(200).json({ message: "ok" })
 })
 
 app.listen(PORT, () => {

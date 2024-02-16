@@ -192,10 +192,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
       if (apiCallType === 'express') {
         response = await fetch(`${url}/health`)
-        return {
-          status: 'success',
-          message: `Connected to Gitlab group: ${groupId}`,
-        };
+        if (response.status === 200) {
+          return {
+            status: 'success',
+            message: 'Connected to Gitlab: ' + JSON.stringify(response),
+          };
+        } else {
+          return {
+            status: 'error',
+            message: 'Failed to connect to Gitlab API',
+          };
+        }
       } else {
         response = await fetch(`${url}/api/v4/groups/${groupId}`, {
           headers: {
@@ -213,7 +220,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       console.error(error);
       return {
         status: 'error',
-        message: 'Failed to connect to Gitlab API',
+        message: 'Failed to connect to Gitlab API ' + error,
       };
     }
   }

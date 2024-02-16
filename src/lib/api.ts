@@ -276,10 +276,10 @@ export async function getIssuesAndEpicsExpress(apiUrl: string, groupId: number):
 
     const processedData =  await processGitlabData(decodedBody['issues'], decodedBody['epics']);
     // parse the response body as JSON
-    const { issueFieldValuesDictionary, epicFieldValuesDictionary, issues, epics } =await processedData;
+    const { issueFieldValuesDictionary, epicFieldValuesDictionary, issues, epics } = await processedData;
     return { issues: issues || [], epics: epics || [], issueFieldValuesDictionary: issueFieldValuesDictionary || {}, epicFieldValuesDictionary: epicFieldValuesDictionary || {} };
   } catch (error) {
     alert(error);
-    throw new Error('Failed to fetch issues and epics from Express API');
+    throw new Error('Failed to fetch issues and epics from Express API ' + error);
   }
 }
