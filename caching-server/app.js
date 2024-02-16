@@ -5,7 +5,12 @@ const origin = process.env.origin || '*';
 const fs = require('fs');
 app.use(express.json());
 const cors = require('cors')
-const corsOptions = { origin: false }
+
+const corsOptions = {
+  origin: origin,
+  allowedHeaders: '*',
+  exposedHeaders: '*'
+};
 
 app.use(cors(corsOptions))
 
