@@ -7,8 +7,8 @@ app.use(express.json());
 const { startCron, writeFile } = require('./gitlab');
 
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE');
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
 
@@ -96,7 +96,7 @@ app.get('/epics', async (req, res) => {
 
 app.get('/health', async (_, res) => {
   console.log('health check');
-  res.status(200).json({ status: "ok" });
+  res.status(200).json({ message: "ok" });
 });
 
 app.listen(PORT, () => {
