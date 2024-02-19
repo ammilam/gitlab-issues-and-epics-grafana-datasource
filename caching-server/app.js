@@ -112,8 +112,8 @@ app.get('/health', async (_, res) => {
 });
 
 
-const certPath = process.env.certPath || './cert/gldc.crt';
-const keyPath = process.env.keyPath || './cert/gldc.key';
+const certPath = process.env.certPath || './cert/tls.crt';
+const keyPath = process.env.keyPath || './cert/tls.key';
 
 const certsDetected = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
