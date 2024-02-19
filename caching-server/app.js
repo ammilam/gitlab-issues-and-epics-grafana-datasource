@@ -20,7 +20,7 @@ const corsOptions = {
   origin: origin, // Replace with your Grafana origin
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Adjust based on your needs
   allowedHeaders: ['Content-Type', 'Authorization'], // Adjust based on your needs
-  credentials: true, // If your frontend needs to send credentials
+  credentials: false, // If your frontend needs to send credentials
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
@@ -32,6 +32,7 @@ const { startCron, writeFile } = require('./gitlab');
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: err });
+  next()
 });
 
 app.get('/gitlab', async (req, res) => {
