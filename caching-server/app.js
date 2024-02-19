@@ -7,6 +7,13 @@ const fs = require('fs');
 app.use(express.json());
 const cors = require('cors')
 
+const responseHeaders = {
+  headers: {
+    "Access-Control-Allow-Credentials": true,
+    "Access-Control-Allow-Origin": "*",
+  }
+}
+
 const corsOptions = {
   origin: origin, // Replace with your actual Grafana origin
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -43,11 +50,11 @@ app.get('/gitlab', cors, async (req, res) => {
     let buf = Buffer.from(data);
     let base64 = buf.toString('base64');
 
-    res.status(200).json({ data: base64 });
+    res.status(200).json({ data: base64 }, responseHeaders);
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message }, responseHeaders);
   }
 });
 
@@ -70,11 +77,11 @@ app.get('/issues', cors, async (req, res) => {
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString();
 
-    res.status(200).json({ issues: JSON.parse(buf)['issues'] });
+    res.status(200).json({ issues: JSON.parse(buf)['issues'] }, responseHeaders);
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message }, responseHeaders);
   }
 });
 
@@ -97,16 +104,16 @@ app.get('/epics', cors, async (req, res) => {
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString();
 
-    res.status(200).json({ epics: JSON.parse(buf)['epics'] });
+    res.status(200).json({ epics: JSON.parse(buf)['epics'] }, responseHeaders);
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message }, responseHeaders);
   }
 });
 
 app.get('/health', cors, async (_, res) => {
-  res.status(200).json({ message: "ok" });
+  res.status(200).json({ message: "ok" }, responseHeaders);
 });
 
 
