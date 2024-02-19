@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.port || 8443;
+const PORT = process.env.port || 8080;
 const origin = process.env.origin || '*';
 const https = require('https');
 const fs = require('fs');
@@ -18,6 +18,10 @@ app.use(cors(corsOptions));
 
 const { startCron, writeFile } = require('./gitlab');
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: err });
+});
 
 app.get('/gitlab', cors, async (req, res) => {
   try {
@@ -112,12 +116,13 @@ const keyPath = process.env.keyPath || './cert/tls.key';
 const certsDetected = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
 if (certsDetected) {
+  console.log(`cert found`)
   https.createServer({
     key: fs.readFileSync(keyPath),
     cert: fs.readFileSync(certPath)
   }, app)
-    .listen(8443, () => {
-      console.log(`Express server running on https://localhost:8443`);
+    .listen(PORT, () => {
+      console.log(`Express server running on https://localhost:${PORT}`);
     });
 } else {
   app.listen(PORT, () => {
@@ -126,4 +131,3 @@ if (certsDetected) {
     console.log(`Proxy server running on http://localhost:${PORT}`);
   });
 }
-
