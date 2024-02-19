@@ -208,21 +208,20 @@ export async function getIssuesAndEpicsGraphql(apiUrl: string, groupName: string
 
   try {
 
-    let groupIssues: any = [];
-    let groupEpics: any = [];
+    let groupIssues: any[] = [];
+    let groupEpics: any[] = [];
     let issuesCursor = null;
-    let epicsCursor = null;
+    let epicsCursor = null
     let issuesPageInfo, epicsPageInfo;
 
 
     do {
       const { data } = await fetchPage(apiUrl, groupName, accessToken, issuesCursor, epicsCursor)
-      const group = data.group;
+      const group: any = data.group;
 
       // Append new issues and epics directly to the arrays
       groupIssues.push(...group.issues.nodes);
       groupEpics.push(...group.epics.nodes);
-      console.log(groupIssues.length)
 
       issuesPageInfo = group.issues.pageInfo;
       epicsPageInfo = group.epics.pageInfo;
