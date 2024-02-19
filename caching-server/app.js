@@ -8,22 +8,15 @@ app.use(express.json());
 const cors = require('cors')
 
 app.use(cors({
-  origin: '*', // Adjust according to your needs
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: '*',
+  methods: '*',
+  allowedHeaders: '*',
 }));
 
 const { startCron, writeFile } = require('./gitlab');
 
-// app.use((req, res, next) => {
-//   res.set('Access-Control-Allow-Origin', 'davita.com')
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   next();
-// });
 
-
-
-app.get('/gitlab', async (req, res) => {
+app.get('/gitlab', cors, async (req, res) => {
   try {
     let query = req.query;
 
@@ -51,7 +44,7 @@ app.get('/gitlab', async (req, res) => {
   }
 });
 
-app.get('/issues', async (req, res) => {
+app.get('/issues', cors, async (req, res) => {
   try {
     let query = req.query;
 
@@ -78,7 +71,7 @@ app.get('/issues', async (req, res) => {
   }
 });
 
-app.get('/epics', async (req, res) => {
+app.get('/epics', cors, async (req, res) => {
   try {
     let query = req.query;
 
@@ -105,7 +98,7 @@ app.get('/epics', async (req, res) => {
   }
 });
 
-app.get('/health', async (_, res) => {
+app.get('/health', cors, async (_, res) => {
   res.status(200).json({ message: "ok" });
 });
 
@@ -117,10 +110,10 @@ const certsDetected = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
 if (certsDetected) {
   https.createServer({
-    key: fs.readFileSync(keyPath), // Path to your key file
-    cert: fs.readFileSync(certPath) // Path to your certificate file
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
   }, app)
-    .listen(8443, function () {
+    .listen(8443, () => {
       console.log(`Express server running on https://localhost:8443`);
     });
 } else {
@@ -128,6 +121,6 @@ if (certsDetected) {
     writeFile();
     startCron();
     console.log(`Proxy server running on http://localhost:${PORT}`);
-  });  
+  });
 }
 
