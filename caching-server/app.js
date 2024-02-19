@@ -1,7 +1,8 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.port || 8080;
+const PORT = process.env.port || 8443;
 const origin = process.env.origin || '*';
+const https = require('https');
 const fs = require('fs');
 app.use(express.json());
 const cors = require('cors')
@@ -17,10 +18,12 @@ app.use(
 const { startCron, writeFile } = require('./gitlab');
 
 app.use((req, res, next) => {
-    res.set('Access-Control-Allow-Origin', 'davita.com')
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.set('Access-Control-Allow-Origin', 'davita.com')
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+
+
 
 app.get('/gitlab', async (req, res) => {
   try {
@@ -109,8 +112,25 @@ app.get('/health', async (_, res) => {
   res.status(200).json({ message: "ok" });
 });
 
-app.listen(PORT, () => {
-  writeFile();
-  startCron();
-  console.log(`Proxy server running on http://localhost:${PORT}`);
-});
+
+const certPath = process.env.certPath || './gldc.crt';
+const keyPath = process.env.keyPath || './gldc.key';
+
+const certsDetected = fs.existsSync(certPath) && fs.existsSync(keyPath);
+
+if (certsDetected) {
+  https.createServer({
+    key: fs.readFileSync(keyPath), // Path to your key file
+    cert: fs.readFileSync(certPath) // Path to your certificate file
+  }, app)
+    .listen(PORT, function () {
+      console.log(`Express server running on https://localhost:${PORT}`);
+    });
+} else {
+  app.listen(PORT, () => {
+    writeFile();
+    startCron();
+    console.log(`Proxy server running on http://localhost:${PORT}`);
+  });  
+}
+
