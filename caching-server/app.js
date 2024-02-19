@@ -112,8 +112,8 @@ app.get('/health', async (_, res) => {
 });
 
 
-const certPath = process.env.certPath || './gldc.crt';
-const keyPath = process.env.keyPath || './gldc.key';
+const certPath = process.env.certPath || './cert/gldc.crt';
+const keyPath = process.env.keyPath || './cert/gldc.key';
 
 const certsDetected = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
@@ -122,8 +122,8 @@ if (certsDetected) {
     key: fs.readFileSync(keyPath), // Path to your key file
     cert: fs.readFileSync(certPath) // Path to your certificate file
   }, app)
-    .listen(PORT, function () {
-      console.log(`Express server running on https://localhost:${PORT}`);
+    .listen(8443, function () {
+      console.log(`Express server running on https://localhost:8443`);
     });
 } else {
   app.listen(PORT, () => {
