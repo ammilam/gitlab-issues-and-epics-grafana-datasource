@@ -11,6 +11,7 @@ const responseHeaders = {
   "Access-Control-Allow-Headers": 'Content-Type',
   "Access-Control-Max-Age": 86400 // Set the maximum age for preflight requests
 };
+
 writeFile();
 startCron();
 server.on('request', (req, res) => {
