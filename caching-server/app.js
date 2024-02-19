@@ -5,7 +5,7 @@ const origin = process.env.origin || '*';
 const https = require('https');
 const fs = require('fs');
 app.use(express.json());
-const cors = require('cors')
+// const cors = require('cors')
 
 const responseHeaders = {
   headers: {
@@ -14,14 +14,14 @@ const responseHeaders = {
   }
 }
 
-const corsOptions = {
-  origin: origin, // Replace with your actual Grafana origin
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
+// const corsOptions = {
+//   origin: origin, // Replace with your actual Grafana origin
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+//   preflightContinue: false,
+//   optionsSuccessStatus: 204
+// };
 
-app.use(cors(corsOptions));
+// app.use(cors());
 
 const { startCron, writeFile } = require('./gitlab');
 
@@ -30,7 +30,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err });
 });
 
-app.get('/gitlab', cors, async (req, res) => {
+app.get('/gitlab', async (req, res) => {
   try {
     let query = req.query;
 
@@ -58,7 +58,7 @@ app.get('/gitlab', cors, async (req, res) => {
   }
 });
 
-app.get('/issues', cors, async (req, res) => {
+app.get('/issues', async (req, res) => {
   try {
     let query = req.query;
 
@@ -85,7 +85,7 @@ app.get('/issues', cors, async (req, res) => {
   }
 });
 
-app.get('/epics', cors, async (req, res) => {
+app.get('/epics', async (req, res) => {
   try {
     let query = req.query;
 
@@ -112,7 +112,7 @@ app.get('/epics', cors, async (req, res) => {
   }
 });
 
-app.get('/health', cors, async (_, res) => {
+app.get('/health', async (_, res) => {
   res.status(200).json({ message: "ok" }, responseHeaders);
 });
 
