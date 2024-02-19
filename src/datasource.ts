@@ -192,19 +192,19 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
       if (apiCallType === 'express') {
         response = await fetch(`${url}/health`, { credentials: 'include' })
-        
-        if (response.status === 200) {
+
+        if (response.ok) {
+          const responseBody = await response.text(); // Use .text() if the response is not JSON
           return {
             status: 'success',
-            message: 'Connected to Gitlab: ' + JSON.stringify(response),
+            message: 'Connected to express server: ' + responseBody,
           };
         } else {
-          const errorBody = await response.text(); // Attempt to read response body
           return {
             status: 'error',
-            message: `HTTP error! status: ${response.status}, body: ${errorBody}`
+            message: 'Failed to connect to express server',
           };
-        }
+      }
       } else {
         response = await fetch(`${url}/api/v4/groups/${groupId}`, {
           headers: {

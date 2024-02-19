@@ -269,7 +269,17 @@ export async function getIssuesAndEpicsExpress(apiUrl: string, groupId: number):
 
   try {
     console.log(`proxying request to gitlab through ${apiUrl}/gitlab?group=${groupId}`)
-    const response = await fetch(`${apiUrl}/gitlab?group=${groupId}`, { credentials: 'include' });
+
+    const requestOptions: object = {
+      method: 'GET', 
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    }
+
+    const response = await fetch(`${apiUrl}/gitlab?group=${groupId}`, requestOptions);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
