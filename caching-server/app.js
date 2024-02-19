@@ -5,23 +5,24 @@ const origin = process.env.origin || '*';
 const https = require('https');
 const fs = require('fs');
 app.use(express.json());
-// const cors = require('cors')
+const cors = require('cors')
 
 const responseHeaders = {
   headers: {
-    "Access-Control-Allow-Credentials": true,
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": "*", // Set the allowed origin to Grafana origin
+    "Access-Control-Allow-Methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    "Access-Control-Allow-Headers": 'Content-Type',
+    "Access-Control-Max-Age": 86400 // Set the maximum age for preflight requests
   }
 }
 
-// const corsOptions = {
-//   origin: origin, // Replace with your actual Grafana origin
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   preflightContinue: false,
-//   optionsSuccessStatus: 204
-// };
+const corsOptions = {
+  origin: "*", // Allow all origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+};
 
-// app.use(cors());
+app.use(cors(corsOptions));
 
 const { startCron, writeFile } = require('./gitlab');
 
@@ -112,7 +113,11 @@ app.get('/epics', async (req, res) => {
   }
 });
 
-app.get('/health', async (_, res) => {
+app.get('/health', async (req, res) => {
+  console.log(`serving request`)
+  console.log(JSON.stringify(req))
+  console.log(`sending response`)
+  console.log(JSON.stringify(res))
   res.status(200).json({ message: "ok" }, responseHeaders);
 });
 
