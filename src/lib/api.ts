@@ -208,8 +208,8 @@ export async function getIssuesAndEpicsGraphql(apiUrl: string, groupName: string
 
   try {
 
-    let groupIssues: any[] = [];
-    let groupEpics: any[] = [];
+    let groupIssues: any = [];
+    let groupEpics: any = [];
     let issuesCursor = null;
     let epicsCursor = null;
     let issuesPageInfo, epicsPageInfo;
