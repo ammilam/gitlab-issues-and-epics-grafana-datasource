@@ -6,15 +6,21 @@ const fs = require('fs');
 app.use(express.json());
 const cors = require('cors')
 
-app.use(cors())
+app.use(
+  cors({
+    origin: `http://localhost:${PORT}`,
+    // Allow follow-up middleware to override this CORS for options
+    preflightContinue: true,
+  }),
+);
 
 const { startCron, writeFile } = require('./gitlab');
 
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   next();
-// });
+app.use((req, res, next) => {
+    res.set('Access-Control-Allow-Origin', 'davita.com')
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 app.get('/gitlab', async (req, res) => {
   try {
