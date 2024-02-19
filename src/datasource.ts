@@ -191,16 +191,18 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       let response: any;
 
       if (apiCallType === 'express') {
-        response = await fetch(`${url}/health`)
+        response = await fetch(`${url}/health`, { credentials: 'include' })
+        
         if (response.status === 200) {
           return {
             status: 'success',
             message: 'Connected to Gitlab: ' + JSON.stringify(response),
           };
         } else {
+          const errorBody = await response.text(); // Attempt to read response body
           return {
             status: 'error',
-            message: 'Failed to connect to Gitlab API',
+            message: `HTTP error! status: ${response.status}, body: ${errorBody}`
           };
         }
       } else {

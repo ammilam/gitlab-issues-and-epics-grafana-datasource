@@ -7,11 +7,14 @@ const fs = require('fs');
 app.use(express.json());
 const cors = require('cors')
 
-app.use(cors({
-  origin: '*',
-  methods: '*',
-  allowedHeaders: '*',
-}));
+const corsOptions = {
+  origin: origin, // Replace with your actual Grafana origin
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
 
 const { startCron, writeFile } = require('./gitlab');
 
