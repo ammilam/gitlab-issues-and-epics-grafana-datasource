@@ -1,121 +1,155 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
+const app = express();
 const PORT = process.env.port || 8080;
-const { startCron, writeFile } = require('./gitlab');
-
-const server = http.createServer();
+const origin = process.env.origin || '*';
+const https = require('https');
+const fs = require('fs');
+app.use(express.json());
+const cors = require('cors')
 
 const responseHeaders = {
-  "Access-Control-Allow-Origin": "*", // Set the allowed origin to Grafana origin
-  "Access-Control-Allow-Methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  "Access-Control-Allow-Headers": 'Content-Type',
-  "Access-Control-Max-Age": 86400 // Set the maximum age for preflight requests
+  headers: {
+    "Access-Control-Allow-Origin": "*", // Set the allowed origin to Grafana origin
+    "Access-Control-Allow-Methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    "Access-Control-Allow-Headers": 'Content-Type',
+    "Access-Control-Max-Age": 86400 // Set the maximum age for preflight requests
+  }
+}
+
+const corsOptions = {
+  origin: origin, // Replace with your Grafana origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Adjust based on your needs
+  allowedHeaders: ['Content-Type', 'Authorization'], // Adjust based on your needs
+  credentials: true, // If your frontend needs to send credentials
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
-writeFile();
-startCron();
-server.on('request', (req, res) => {
-  // Handle requests here
-  if (req.url === '/gitlab') {
-    try {
-      let query = req.query;
+app.use(cors(corsOptions));
 
-      if (!query.group) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: "web request missing 'group' query string" }));
-        return;
-      }
+const { startCron, writeFile } = require('./gitlab');
 
-      let group = query.group;
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: err });
+});
 
-      console.log(`Getting data for group ${group}`);
+app.get('/gitlab', async (req, res) => {
+  try {
+    let query = req.query;
 
-      let groupData = `./data/${group}.json`;
-
-      let data = fs.readFileSync(groupData);
-
-      // buffer the data and base64 encode
-      let buf = Buffer.from(data);
-      let base64 = buf.toString('base64');
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ data: base64 }));
-
-    } catch (error) {
-      console.log(error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
+    if (!query.group) {
+      res.status(400).json({ error: "web request missing 'group' query string" });
     }
-  } else if (req.url === '/issues') {
-    try {
-      let query = req.query;
 
-      if (!query.group) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: "web request missing 'group' query string" }));
-        return;
-      }
+    let group = query.group;
 
-      let group = query.group;
+    console.log(`Getting data for group ${group}`);
 
-      console.log(`Getting data for group ${group}`);
+    let groupData = `./data/${group}.json`;
 
-      let groupData = `./data/${group}.json`;
+    let data = fs.readFileSync(groupData);
 
-      let data = fs.readFileSync(groupData);
+    // buffer the data and base64 encode
+    let buf = Buffer.from(data);
+    let base64 = buf.toString('base64');
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(200).json({ data: base64 });
 
-      // buffer the data and base64 encode
-      let buf = Buffer.from(data).toString();
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ issues: JSON.parse(buf)['issues'] }));
-
-    } catch (error) {
-      console.log(error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
-    }
-  } else if (req.url === '/epics') {
-    try {
-      let query = req.query;
-
-      if (!query.group) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: "web request missing 'group' query string" }));
-        return;
-      }
-
-      let group = query.group;
-
-      console.log(`Getting data for group ${group}`);
-
-      let groupData = `./data/${group}.json`;
-
-      let data = fs.readFileSync(groupData);
-
-      // buffer the data and base64 encode
-      let buf = Buffer.from(data).toString();
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ epics: JSON.parse(buf)['epics'] }));
-
-    } catch (error) {
-      console.log(error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: error.message }));
-    }
-  } else if (req.url === '/health') {
-    console.log(`serving request`)
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: "ok" }));
-  } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not Found');
+  } catch (error) {
+    console.log(error);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(500).json({ error: error.message });
   }
 });
 
-server.on('error', (err) => {
-  console.error(err);
+app.get('/issues', async (req, res) => {
+  try {
+    let query = req.query;
+
+    if (!query.group) {
+      res.status(400).json({ error: "web request missing 'group' query string" });
+    }
+
+    let group = query.group;
+
+    console.log(`Getting data for group ${group}`);
+
+    let groupData = `./data/${group}.json`;
+
+    let data = fs.readFileSync(groupData);
+
+    // buffer the data and base64 encode
+    let buf = Buffer.from(data).toString();
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(200).json({ issues: JSON.parse(buf)['issues'] });
+
+  } catch (error) {
+    console.log(error);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(500).json({ error: error.message });
+  }
 });
 
-server.listen(PORT, () => {
-  console.log(`Proxy server running on http://localhost:${PORT}`);
+app.get('/epics', async (req, res) => {
+  try {
+    let query = req.query;
+
+    if (!query.group) {
+      res.status(400).json({ error: "web request missing 'group' query string" });
+    }
+
+    let group = query.group;
+
+    console.log(`Getting data for group ${group}`);
+
+    let groupData = `./data/${group}.json`;
+
+    let data = fs.readFileSync(groupData);
+
+    // buffer the data and base64 encode
+    let buf = Buffer.from(data).toString();
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+
+    res.status(200).json({ epics: JSON.parse(buf)['epics'] });
+
+  } catch (error) {
+    console.log(error);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(500).json({ error: error.message });
+  }
 });
+
+app.get('/health', async (req, res) => {
+  console.log(`serving request`)
+  console.log(JSON.stringify(req))
+  console.log(`sending response`)
+  console.log(JSON.stringify(res))
+  res.set(responseHeaders.headers); // Set the headers using res.set()
+  res.status(200).json({ message: "ok" }, responseHeaders);
+});
+
+
+const certPath = process.env.certPath || './cert/tls.crt';
+const keyPath = process.env.keyPath || './cert/tls.key';
+
+const certsDetected = fs.existsSync(certPath) && fs.existsSync(keyPath);
+
+if (certsDetected) {
+  console.log(`cert found`)
+  https.createServer({
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
+  }, app)
+    .listen(PORT, () => {
+      writeFile();
+      startCron();
+      console.log(`Express server running on https://localhost:${PORT}`);
+    });
+} else {
+  app.listen(PORT, () => {
+    writeFile();
+    startCron();
+    console.log(`Proxy server running on http://localhost:${PORT}`);
+  });
+}
