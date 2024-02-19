@@ -50,12 +50,13 @@ app.get('/gitlab', async (req, res) => {
     // buffer the data and base64 encode
     let buf = Buffer.from(data);
     let base64 = buf.toString('base64');
-
-    res.status(200).json({ data: base64 }, responseHeaders);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(200).json({ data: base64 });
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message }, responseHeaders);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -77,12 +78,13 @@ app.get('/issues', async (req, res) => {
 
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString();
-
-    res.status(200).json({ issues: JSON.parse(buf)['issues'] }, responseHeaders);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(200).json({ issues: JSON.parse(buf)['issues'] });
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message }, responseHeaders);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -104,12 +106,14 @@ app.get('/epics', async (req, res) => {
 
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString();
+    res.set(responseHeaders.headers); // Set the headers using res.set()
 
-    res.status(200).json({ epics: JSON.parse(buf)['epics'] }, responseHeaders);
+    res.status(200).json({ epics: JSON.parse(buf)['epics'] });
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message }, responseHeaders);
+    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -118,6 +122,7 @@ app.get('/health', async (req, res) => {
   console.log(JSON.stringify(req))
   console.log(`sending response`)
   console.log(JSON.stringify(res))
+  res.set(responseHeaders.headers); // Set the headers using res.set()
   res.status(200).json({ message: "ok" }, responseHeaders);
 });
 
