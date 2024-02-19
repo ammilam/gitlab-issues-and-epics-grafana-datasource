@@ -122,6 +122,8 @@ if (certsDetected) {
     cert: fs.readFileSync(certPath)
   }, app)
     .listen(PORT, () => {
+      writeFile();
+      startCron();
       console.log(`Express server running on https://localhost:${PORT}`);
     });
 } else {

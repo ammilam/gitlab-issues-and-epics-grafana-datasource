@@ -52,7 +52,7 @@ async function fetchAllPages(url: string, accessToken: string) {
 
 // a function used to fetch issues and epics from the Gitlab REST API
 export async function getIssuesAndEpicsRest(apiUrl: string, groupId: number, accessToken: string): Promise<any> {
-  
+
   let url = `${apiUrl}/api/v4/groups/${groupId}`;
 
   try {
@@ -61,7 +61,7 @@ export async function getIssuesAndEpicsRest(apiUrl: string, groupId: number, acc
         'PRIVATE-TOKEN': `${accessToken}`,
       },
     });
-    
+
     const res = await projectResponse.json()
     await sleep(500)
     const projects = res['projects']
@@ -77,7 +77,7 @@ export async function getIssuesAndEpicsRest(apiUrl: string, groupId: number, acc
 
     let epicResponseUrl = `${apiUrl}/api/v4/groups/${groupId}/epics?per_page=100`;
     let groupEpics = await fetchAllPages(epicResponseUrl, accessToken);
-    
+
     let processedData = processGitlabData(groupIssues, groupEpics);
     let { issueFieldValuesDictionary, epicFieldValuesDictionary, issues, epics } = await processedData;
     return { issues, epics, issueFieldValuesDictionary, epicFieldValuesDictionary };
@@ -208,15 +208,15 @@ export async function getIssuesAndEpicsGraphql(apiUrl: string, groupName: string
 
   try {
 
-    let groupIssues: any[] = [];
-    let groupEpics: any[] = [];
-    let issuesCursor: any = null;
-    let epicsCursor: any = null;
+    let groupIssues: object[] = [];
+    let groupEpics: object[] = [];
+    let issuesCursor = null;
+    let epicsCursor = null;
     let issuesPageInfo, epicsPageInfo;
-  
+
 
     do {
-      const { data } = await fetchPage(apiUrl, groupName, accessToken, issuesCursor, epicsCursor);
+      const { data } = await fetchPage(apiUrl, groupName, accessToken, issuesCursor, epicsCursor)
       const group = data.group;
 
       // Append new issues and epics directly to the arrays
@@ -265,17 +265,35 @@ export async function getIssuesAndEpicsGitbreakerClient(apiUrl: string, groupId:
 }
 
 // a function used to fetch issues and epics from a custom Expressjs API
+/**
+ * Fetches issues and epics from the Express API.
+ * 
+ * @param apiUrl - The URL of the Express API.
+ * @param groupId - The ID of the group.
+ * @returns A Promise that resolves to an object containing the fetched issues and epics.
+ * @throws An error if the HTTP request fails or if there is an error processing the data.
+ */
 export async function getIssuesAndEpicsExpress(apiUrl: string, groupId: number): Promise<any> {
 
   try {
     console.log(`proxying request to gitlab through ${apiUrl}/gitlab?group=${groupId}`)
 
+    /**
+     * Options for making an API request.
+     * @typedef {object} RequestOptions
+     * @property {string} method - The HTTP method for the request.
+     * @property {object} headers - The headers for the request.
+     * @property {string} headers.Accept - The value of the 'Accept' header.
+     * @property {string} headers.Content-Type - The value of the 'Content-Type' header.
+     * @property {string} credentials - The credentials mode for the request.
+     */
+
     const requestOptions: object = {
-      method: 'GET', 
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+      "Access-Control-Max-Age": "86400",
       credentials: 'include'
     }
 

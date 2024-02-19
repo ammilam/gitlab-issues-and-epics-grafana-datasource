@@ -140,7 +140,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const { groupBy, aggregateFunction, typeFilter = "issue", filters, createdAfter = null, createdBefore = null, updatedAfter = null, updatedBefore = null, closedAfter = null, closedBefore = null, regexFilters } = options.targets[0];
     let data = typeFilter === "issue" ? issues : epics;
     let initialDataFrames = this.convertToDataFrames(data, groupBy, typeFilter);
-    
+
     let filteredDataFrames = initialDataFrames;
     let interpolatedFilters = filters;
 
@@ -190,8 +190,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const apiCallType = this.apiCallType
       let response: any;
 
+      let options: object = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+        "Access-Control-Max-Age": "86400",
+        credentials: 'include'
+      }
+
       if (apiCallType === 'express') {
-        response = await fetch(`${url}/health`, { credentials: 'include' })
+        response = await fetch(`${url}/health`, options)
 
         if (response.ok) {
           const responseBody = await response.text(); // Use .text() if the response is not JSON
@@ -204,7 +213,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             status: 'error',
             message: 'Failed to connect to express server',
           };
-      }
+        }
       } else {
         response = await fetch(`${url}/api/v4/groups/${groupId}`, {
           headers: {
