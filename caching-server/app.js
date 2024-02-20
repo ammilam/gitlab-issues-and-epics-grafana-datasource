@@ -150,6 +150,7 @@ if (certsDetected) {
       console.log(`Express server running on https://localhost:${PORT}`);
     });
 } else {
+  console.log(`no cert found`)
   app.listen(PORT, () => {
     writeFile();
     startCron();
