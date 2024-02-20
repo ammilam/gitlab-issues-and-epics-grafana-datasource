@@ -190,16 +190,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const apiCallType = this.apiCallType
       let response: any;
 
-      let options: object = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers":
-          "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
-        "Access-Control-Max-Age": "86400",
-      }
+      // let options: object = {
+      //   "Access-Control-Allow-Origin": "*",
+      //   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      //   "Access-Control-Allow-Headers":
+      //     "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+      //   "Access-Control-Max-Age": "86400",
+      // }
 
       if (apiCallType === 'express') {
-        response = await fetch(`${url}/health`, options)
+        response = await fetch(`${url}/health`)
 
         if (response.ok) {
           const responseBody = await response.text(); // Use .text() if the response is not JSON

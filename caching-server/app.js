@@ -9,18 +9,19 @@ const cors = require('cors')
 
 const responseHeaders = {
   headers: {
-    "Access-Control-Allow-Origin": "*", // Set the allowed origin to Grafana origin
-    "Access-Control-Allow-Methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    "Access-Control-Allow-Headers": 'Content-Type',
-    "Access-Control-Max-Age": 86400 // Set the maximum age for preflight requests
-  }
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+    "Access-Control-Max-Age": "86400",
+  },
 }
 
 const corsOptions = {
-  origin: origin, // Replace with your Grafana origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Adjust based on your needs
-  allowedHeaders: ['Content-Type', 'Authorization'], // Adjust based on your needs
-  credentials: false, // If your frontend needs to send credentials
+  origin: origin, // Dynamically set the allowed origin or default to '*'
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false, // Enable if your frontend needs to send credentials (cookies, HTTP auth)
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
@@ -49,6 +50,7 @@ app.get('/gitlab', async (req, res) => {
 
     let groupData = `./data/${group}.json`;
 
+    if (fs.existsSync(groupData)) {
     let data = fs.readFileSync(groupData);
 
     // buffer the data and base64 encode
@@ -56,6 +58,9 @@ app.get('/gitlab', async (req, res) => {
     let base64 = buf.toString('base64');
     res.set(responseHeaders.headers); // Set the headers using res.set()
     res.status(200).json({ data: base64 });
+    } else {
+      res.status(400).json({message: "data not present"})
+    }
 
   } catch (error) {
     console.log(error);
