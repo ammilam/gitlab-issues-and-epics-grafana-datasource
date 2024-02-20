@@ -17,8 +17,10 @@ const responseHeaders = {
 }
 
 const corsOptions = {
-  origin: origin, // Allow all origins
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  origin: origin, // Dynamically set the allowed origin or default to '*'
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false, // Enable if your frontend needs to send credentials (cookies, HTTP auth)
   preflightContinue: false,
 };
 
@@ -78,12 +80,12 @@ app.get('/issues', async (req, res) => {
 
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString();
-    res.set(responseHeaders.headers); // Set the headers using res.set()
+    // res.set(responseHeaders.headers); // Set the headers using res.set()
     res.status(200).json({ issues: JSON.parse(buf)['issues'] });
 
   } catch (error) {
     console.log(error);
-    res.set(responseHeaders.headers); // Set the headers using res.set()
+    // res.set(responseHeaders.headers); // Set the headers using res.set()
     res.status(500).json({ error: error.message });
   }
 });
@@ -106,13 +108,13 @@ app.get('/epics', async (req, res) => {
 
     // buffer the data and base64 encode
     let buf = Buffer.from(data).toString();
-    res.set(responseHeaders.headers); // Set the headers using res.set()
+    // res.set(responseHeaders.headers); // Set the headers using res.set()
 
     res.status(200).json({ epics: JSON.parse(buf)['epics'] });
 
   } catch (error) {
     console.log(error);
-    res.set(responseHeaders.headers); // Set the headers using res.set()
+    // res.set(responseHeaders.headers); // Set the headers using res.set()
     res.status(500).json({ error: error.message });
   }
 });
