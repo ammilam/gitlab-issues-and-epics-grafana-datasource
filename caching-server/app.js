@@ -140,7 +140,9 @@ if (certsDetected) {
   console.log(`cert found`)
   https.createServer({
     key: fs.readFileSync(keyPath),
-    cert: fs.readFileSync(certPath)
+    cert: fs.readFileSync(certPath),
+    minVersion: 'TLSv1.2',
+    maxVersion: 'TLSv1.3',
   }, app)
     .listen(PORT, () => {
       writeFile();
