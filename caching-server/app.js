@@ -9,21 +9,17 @@ const cors = require('cors')
 
 const responseHeaders = {
   headers: {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
-    "Access-Control-Max-Age": "86400",
-  },
+    "Access-Control-Allow-Origin": origin, // Set the allowed origin to Grafana origin
+    "Access-Control-Allow-Methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    "Access-Control-Allow-Headers": 'Content-Type',
+    "Access-Control-Max-Age": 86400 // Set the maximum age for preflight requests
+  }
 }
 
 const corsOptions = {
-  origin: origin, // Dynamically set the allowed origin or default to '*'
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false, // Enable if your frontend needs to send credentials (cookies, HTTP auth)
+  origin: origin, // Allow all origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   preflightContinue: false,
-  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
@@ -33,7 +29,6 @@ const { startCron, writeFile } = require('./gitlab');
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: err });
-  next()
 });
 
 app.get('/gitlab', async (req, res) => {
@@ -50,7 +45,6 @@ app.get('/gitlab', async (req, res) => {
 
     let groupData = `./data/${group}.json`;
 
-    if (fs.existsSync(groupData)) {
     let data = fs.readFileSync(groupData);
 
     // buffer the data and base64 encode
@@ -58,9 +52,6 @@ app.get('/gitlab', async (req, res) => {
     let base64 = buf.toString('base64');
     res.set(responseHeaders.headers); // Set the headers using res.set()
     res.status(200).json({ data: base64 });
-    } else {
-      res.status(400).json({message: "data not present"})
-    }
 
   } catch (error) {
     console.log(error);
@@ -127,12 +118,14 @@ app.get('/epics', async (req, res) => {
 });
 
 app.get('/health', async (req, res) => {
-  console.log(`serving request`)
-  console.log(JSON.stringify(req))
-  console.log(`sending response`)
-  console.log(JSON.stringify(res))
-  res.set(responseHeaders.headers); // Set the headers using res.set()
-  res.status(200).json({ message: "ok" }, responseHeaders);
+  try {
+    console.log(`serving request`);
+    console.log(`sending response`);
+    res.status(200).json({ message: "ok" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 
