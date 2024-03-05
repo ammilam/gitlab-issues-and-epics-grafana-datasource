@@ -8,23 +8,15 @@ app.use(express.json());
 const cors = require('cors')
 
 const responseHeaders = {
+  mode: 'no-cors',
   headers: {
-    "Access-Control-Allow-Origin": origin, // Set the allowed origin to Grafana origin
-    "Access-Control-Allow-Methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    "Access-Control-Allow-Headers": 'Content-Type',
-    "Access-Control-Max-Age": 86400 // Set the maximum age for preflight requests
+    "Accept": "application/json",
+    "Content-Type": "application/json",
   }
 }
 
-const corsOptions = {
-  origin: origin, // Dynamically set the allowed origin or default to '*'
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false, // Enable if your frontend needs to send credentials (cookies, HTTP auth)
-  preflightContinue: false,
-};
 
-app.use(cors(corsOptions));
+app.use();
 
 const { startCron, writeFile } = require('./gitlab');
 
@@ -52,12 +44,12 @@ app.get('/gitlab', async (req, res) => {
     // buffer the data and base64 encode
     let buf = Buffer.from(data);
     let base64 = buf.toString('base64');
-    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.set(responseHeaders); // Set the headers using res.set()
     res.status(200).json({ data: base64 });
 
   } catch (error) {
     console.log(error);
-    res.set(responseHeaders.headers); // Set the headers using res.set()
+    res.set(responseHeaders); // Set the headers using res.set()
     res.status(500).json({ error: error.message });
   }
 });

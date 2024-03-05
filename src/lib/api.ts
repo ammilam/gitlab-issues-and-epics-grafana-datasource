@@ -288,11 +288,13 @@ export async function getIssuesAndEpicsExpress(apiUrl: string, groupId: number):
      */
 
     const requestOptions: object = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
-      "Access-Control-Max-Age": "86400",
+      mode: 'no-cors',
+      credentials: false,
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      }
     }
 
     const response = await fetch(`${apiUrl}/gitlab?group=${groupId}`, requestOptions);
